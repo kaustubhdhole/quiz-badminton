@@ -13,7 +13,7 @@ let score = 0;
 const scoreDiv = document.getElementById('score');
 
 const skateboardHeight = 12;
-const skateboardWidth = 90;
+const skateboardWidth = 120;
 let skateboardX = (canvas.width - skateboardWidth) / 2;
 
 const footballRadius = 10;
@@ -121,7 +121,7 @@ function wheelHandler(e) {
 function drawSkateboard() {
   ctx.beginPath();
   ctx.rect(skateboardX, canvas.height - skateboardHeight, skateboardWidth, skateboardHeight);
-  ctx.fillStyle = '#333';
+  ctx.fillStyle = '#ff6f61';
   ctx.fill();
   ctx.closePath();
 }
@@ -129,7 +129,7 @@ function drawSkateboard() {
 function drawFootball() {
   ctx.beginPath();
   ctx.arc(x, y, footballRadius, 0, Math.PI * 2);
-  ctx.fillStyle = '#b5651d';
+  ctx.fillStyle = '#f1c40f';
   ctx.fill();
   ctx.closePath();
 }
@@ -145,7 +145,7 @@ function drawBricks() {
         b.y = brickY;
         ctx.beginPath();
         ctx.rect(brickX, brickY, brickWidth, brickHeight);
-        ctx.fillStyle = b.quiz ? '#27ae60' : '#0095DD';
+        ctx.fillStyle = b.quiz ? '#9b59b6' : '#2980b9';
         ctx.fill();
         ctx.closePath();
       }
