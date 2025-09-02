@@ -1,6 +1,9 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const rulesDiv = document.getElementById('rules');
+const fireworksCanvas = document.getElementById('fireworksCanvas');
+const fireworksCtx = fireworksCanvas.getContext('2d');
+let isCelebrating = false;
 
 function resizeCanvas() {
   const availableWidth = window.innerWidth - rulesDiv.offsetWidth;
@@ -92,10 +95,9 @@ function askQuestion() {
   return parseInt(response, 10) === q.answer;
 }
 
-function showFireworks() {
-  const fireworksCanvas = document.getElementById('fireworksCanvas');
-  if (!fireworksCanvas) return;
-  const fireworksCtx = fireworksCanvas.getContext('2d');
+function showFireworks(force = false) {
+  if ((isCelebrating && !force) || !fireworksCanvas) return;
+  isCelebrating = true;
   fireworksCanvas.width = window.innerWidth;
   fireworksCanvas.height = window.innerHeight;
   fireworksCanvas.classList.remove('hidden');
@@ -134,6 +136,7 @@ function showFireworks() {
       requestAnimationFrame(animate);
     } else {
       fireworksCanvas.classList.add('hidden');
+      isCelebrating = false;
     }
   }
   animate();
@@ -252,7 +255,7 @@ function endGame(won = false) {
   message.textContent = won ? `You Win! Final Score: ${score}` : `Game Over! Final Score: ${score}`;
   message.classList.remove('hidden');
   if (won) {
-    showFireworks();
+    showFireworks(true);
   }
   cancelAnimationFrame(animationId);
 }
