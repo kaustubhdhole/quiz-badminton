@@ -63,6 +63,7 @@ let leftPressed = false;
 document.addEventListener('keydown', keyDownHandler, false);
 document.addEventListener('keyup', keyUpHandler, false);
 document.addEventListener('wheel', wheelHandler, { passive: false });
+document.addEventListener('mousemove', mouseMoveHandler, false);
 
 window.addEventListener('resize', () => {
   resizeCanvas();
@@ -213,6 +214,17 @@ function keyUpHandler(e) {
 function wheelHandler(e) {
   e.preventDefault();
   skateboardX += e.deltaY * 0.2;
+  if (skateboardX < 0) {
+    skateboardX = 0;
+  } else if (skateboardX > canvas.width - skateboardWidth) {
+    skateboardX = canvas.width - skateboardWidth;
+  }
+}
+
+function mouseMoveHandler(e) {
+  const rect = canvas.getBoundingClientRect();
+  const relativeX = e.clientX - rect.left;
+  skateboardX = relativeX - skateboardWidth / 2;
   if (skateboardX < 0) {
     skateboardX = 0;
   } else if (skateboardX > canvas.width - skateboardWidth) {
