@@ -1,6 +1,12 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+
 let score = 0;
 const scoreDiv = document.getElementById('score');
 
@@ -19,6 +25,14 @@ let leftPressed = false;
 
 document.addEventListener('keydown', keyDownHandler, false);
 document.addEventListener('keyup', keyUpHandler, false);
+document.addEventListener('wheel', wheelHandler, { passive: false });
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  if (skateboardX > canvas.width - skateboardWidth) {
+    skateboardX = canvas.width - skateboardWidth;
+  }
+});
 
 const brickRowCount = 5;
 const brickColumnCount = 7;
@@ -89,6 +103,16 @@ function keyUpHandler(e) {
     rightPressed = false;
   } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
     leftPressed = false;
+  }
+}
+
+function wheelHandler(e) {
+  e.preventDefault();
+  skateboardX += e.deltaY * 0.2;
+  if (skateboardX < 0) {
+    skateboardX = 0;
+  } else if (skateboardX > canvas.width - skateboardWidth) {
+    skateboardX = canvas.width - skateboardWidth;
   }
 }
 
@@ -165,9 +189,8 @@ function showPoints(text, x, y) {
   span.className = 'points';
   if (text === '+50') span.classList.add('special');
   span.textContent = text;
-  const rect = canvas.getBoundingClientRect();
-  span.style.left = rect.left + x + 'px';
-  span.style.top = rect.top + y + 'px';
+  span.style.left = x + 'px';
+  span.style.top = y + 'px';
   container.appendChild(span);
   span.addEventListener('animationend', () => span.remove());
 }
