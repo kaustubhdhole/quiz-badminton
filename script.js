@@ -23,11 +23,13 @@ const skateboardSizeMap = {
   large: 160
 };
 
-document.getElementById('size-select').addEventListener('change', (e) => {
+const sizeSelect = document.getElementById('size-select');
+sizeSelect.addEventListener('change', (e) => {
   skateboardWidth = skateboardSizeMap[e.target.value];
   if (skateboardX > canvas.width - skateboardWidth) {
     skateboardX = canvas.width - skateboardWidth;
   }
+  sizeSelect.blur();
 });
 
 const footballRadius = 10;
