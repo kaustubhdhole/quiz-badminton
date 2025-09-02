@@ -93,18 +93,18 @@ function askQuestion() {
 }
 
 function showFireworks() {
-  const canvas = document.getElementById('fireworksCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  canvas.classList.remove('hidden');
+  const fireworksCanvas = document.getElementById('fireworksCanvas');
+  if (!fireworksCanvas) return;
+  const fireworksCtx = fireworksCanvas.getContext('2d');
+  fireworksCanvas.width = window.innerWidth;
+  fireworksCanvas.height = window.innerHeight;
+  fireworksCanvas.classList.remove('hidden');
 
   const particles = [];
   for (let i = 0; i < 5; i++) {
     const fx = {
-      x: Math.random() * canvas.width,
-      y: Math.random() * (canvas.height / 2)
+      x: Math.random() * fireworksCanvas.width,
+      y: Math.random() * (fireworksCanvas.height / 2)
     };
     for (let j = 0; j < 50; j++) {
       const angle = Math.random() * Math.PI * 2;
@@ -121,19 +121,19 @@ function showFireworks() {
   }
 
   function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
     particles.forEach(p => {
       p.x += p.dx;
       p.y += p.dy;
       p.dy += 0.02;
       p.life--;
-      ctx.fillStyle = p.color;
-      ctx.fillRect(p.x, p.y, 3, 3);
+      fireworksCtx.fillStyle = p.color;
+      fireworksCtx.fillRect(p.x, p.y, 3, 3);
     });
     if (particles.some(p => p.life > 0)) {
       requestAnimationFrame(animate);
     } else {
-      canvas.classList.add('hidden');
+      fireworksCanvas.classList.add('hidden');
     }
   }
   animate();
@@ -216,7 +216,9 @@ function collisionDetection() {
             if (askQuestion()) {
               score += 50;
               showPoints('+50', brickX + brickWidth / 2, brickY);
-              showFireworks();
+              if (remainingBricks > 1) {
+                showFireworks();
+              }
             }
           } else {
             score += 10;
