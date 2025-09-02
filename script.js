@@ -12,6 +12,9 @@ resizeCanvas();
 
 let score = 0;
 const scoreDiv = document.getElementById('score');
+const cheatHeader = document.getElementById('cheats-header');
+const cheatList = document.getElementById('cheats-list');
+let cheatsUnlocked = false;
 
 const skateboardHeight = 12;
 let skateboardWidth = 120;
@@ -51,11 +54,17 @@ gravityInput.addEventListener('change', (e) => {
   gravityInput.blur();
 });
 
-const footballRadius = 10;
+const defaultBallRadius = 10;
+let ballRadius = defaultBallRadius;
+const defaultBallColor = '#f1c40f';
+const cheatBallColor = '#ffd700';
+let ballColor = defaultBallColor;
 let x = canvas.width / 2;
 let y = canvas.height - 30;
 let dx = gravity;
 let dy = -gravity;
+let lastSpacePress = 0;
+let cheatActive = false;
 
 let rightPressed = false;
 let leftPressed = false;
@@ -138,6 +147,27 @@ function populateTopics() {
   });
 }
 
+let cheatData = [];
+
+async function loadCheats() {
+  const res = await fetch('cheats.json');
+  cheatData = await res.json();
+  cheatData.forEach(c => {
+    const li = document.createElement('li');
+    li.textContent = `${c.name}: ${c.description}`;
+    cheatList.appendChild(li);
+  });
+  cheatHeader.classList.remove('hidden');
+  cheatList.classList.remove('hidden');
+}
+
+function checkCheatsUnlock() {
+  if (score >= 200 && !cheatsUnlocked) {
+    cheatsUnlocked = true;
+    loadCheats();
+  }
+}
+
 function askQuestion() {
   const selected = Array.from(document.querySelectorAll('.topic-checkbox:checked')).map(cb => cb.value);
   const fallback = Object.keys(questionMap)[0];
@@ -154,6 +184,8 @@ function keyDownHandler(e) {
     rightPressed = true;
   } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
     leftPressed = true;
+  } else if (e.key === ' ' || e.key === 'Spacebar') {
+    lastSpacePress = Date.now();
   }
 }
 
@@ -196,10 +228,45 @@ function drawSkateboard() {
 
 function drawFootball() {
   ctx.beginPath();
-  ctx.arc(x, y, footballRadius, 0, Math.PI * 2);
-  ctx.fillStyle = '#f1c40f';
+  ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+  ctx.fillStyle = ballColor;
   ctx.fill();
   ctx.closePath();
+}
+
+function activateCheat() {
+  ballRadius = defaultBallRadius * 2;
+  ballColor = cheatBallColor;
+  cheatActive = true;
+}
+
+function deactivateCheat() {
+  ballRadius = defaultBallRadius;
+  ballColor = defaultBallColor;
+  cheatActive = false;
+}
+
+function destroyBrick(c, r, triggerQuiz = true) {
+  const b = bricks[c][r];
+  if (!b || b.status !== 1) return;
+  b.status = 0;
+  const brickX = b.x;
+  const brickY = b.y;
+  if (b.quiz && triggerQuiz) {
+    if (askQuestion()) {
+      score += 50;
+      showPoints('+50', brickX + brickWidth / 2, brickY);
+    }
+  } else {
+    score += 10;
+    showPoints('+10', brickX + brickWidth / 2, brickY);
+  }
+  remainingBricks--;
+  scoreDiv.textContent = `Score: ${score}`;
+  checkCheatsUnlock();
+  if (remainingBricks === 0) {
+    endGame();
+  }
 }
 
 function drawBricks() {
@@ -241,20 +308,20 @@ function collisionDetection() {
         b.y = brickY;
         if (x > brickX && x < brickX + brickWidth && y > brickY && y < brickY + brickHeight) {
           dy = -dy;
-          b.status = 0;
-          if (b.quiz) {
-            if (askQuestion()) {
-              score += 50;
-              showPoints('+50', brickX + brickWidth / 2, brickY);
-            }
-          } else {
-            score += 10;
-            showPoints('+10', brickX + brickWidth / 2, brickY);
-          }
-          remainingBricks--;
-          scoreDiv.textContent = `Score: ${score}`;
-          if (remainingBricks === 0) {
-            endGame();
+          destroyBrick(c, r, true);
+          if (cheatActive) {
+            const neighbors = [
+              [c - 1, r],
+              [c + 1, r],
+              [c, r - 1],
+              [c, r + 1]
+            ];
+            neighbors.forEach(([nc, nr]) => {
+              if (nc >= 0 && nc < brickColumnCount && nr >= 0 && nr < brickRowCount) {
+                destroyBrick(nc, nr, false);
+              }
+            });
+            deactivateCheat();
           }
         }
       }
@@ -288,14 +355,17 @@ function draw() {
   drawSkateboard();
   collisionDetection();
 
-  if (x + dx > canvas.width - footballRadius || x + dx < footballRadius) {
+  if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
   }
-  if (y + dy < footballRadius) {
+  if (y + dy < ballRadius) {
     dy = -dy;
-  } else if (y + dy > canvas.height - footballRadius) {
+  } else if (y + dy > canvas.height - ballRadius) {
     if (x > skateboardX && x < skateboardX + skateboardWidth) {
       dy = -dy;
+      if (Date.now() - lastSpacePress < 300) {
+        activateCheat();
+      }
     } else {
       endGame();
       return;
