@@ -214,8 +214,17 @@ function drawBricks() {
         b.y = brickY;
         ctx.beginPath();
         ctx.rect(brickX, brickY, brickWidth, brickHeight);
-        ctx.fillStyle = b.quiz ? '#9b59b6' : '#2980b9';
+        ctx.fillStyle = b.quiz ? '#27ae60' : '#2980b9';
         ctx.fill();
+        if (b.quiz) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '16px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('Q', brickX + brickWidth / 2, brickY + brickHeight / 2);
+          ctx.textAlign = 'start';
+          ctx.textBaseline = 'alphabetic';
+        }
         ctx.closePath();
       }
     }
