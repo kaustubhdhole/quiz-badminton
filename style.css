@@ -20,7 +20,7 @@ body {
   border: none;
 }
 
-#rules {
+#rules, #config {
   width: 250px;
   padding: 20px;
   text-align: left;
@@ -28,6 +28,12 @@ body {
   border-left: 1px solid #444;
   overflow-y: auto;
   height: 100vh;
+}
+
+#config label,
+#config legend {
+  display: block;
+  margin-top: 10px;
 }
 
 #score {

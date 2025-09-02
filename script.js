@@ -1,9 +1,10 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const rulesDiv = document.getElementById('rules');
+const configDiv = document.getElementById('config');
 
 function resizeCanvas() {
-  const availableWidth = window.innerWidth - rulesDiv.offsetWidth;
+  const availableWidth = window.innerWidth - rulesDiv.offsetWidth - configDiv.offsetWidth;
   canvas.width = availableWidth;
   canvas.height = window.innerHeight;
 }
@@ -13,8 +14,21 @@ let score = 0;
 const scoreDiv = document.getElementById('score');
 
 const skateboardHeight = 12;
-const skateboardWidth = 120;
+let skateboardWidth = 120;
 let skateboardX = (canvas.width - skateboardWidth) / 2;
+
+const skateboardSizeMap = {
+  small: 80,
+  medium: 120,
+  large: 160
+};
+
+document.getElementById('size-select').addEventListener('change', (e) => {
+  skateboardWidth = skateboardSizeMap[e.target.value];
+  if (skateboardX > canvas.width - skateboardWidth) {
+    skateboardX = canvas.width - skateboardWidth;
+  }
+});
 
 const footballRadius = 10;
 let x = canvas.width / 2;
@@ -66,27 +80,82 @@ while (quizBricks > 0) {
 
 let remainingBricks = brickRowCount * brickColumnCount;
 
-// Machine Learning MCQs
-const mlQuestions = [
-  {
-    question: 'Which algorithm can be used for both classification and regression?',
-    options: ['K-means', 'Linear Regression', 'Decision Tree', 'Apriori'],
-    answer: 3
-  },
-  {
-    question: 'What does an activation function introduce in a neural network?',
-    options: ['Bias', 'Non-linearity', 'Regularization', 'Momentum'],
-    answer: 2
-  },
-  {
-    question: 'Which metric is suitable for evaluating imbalanced classification problems?',
-    options: ['Accuracy', 'Mean Squared Error', 'Precision-Recall', 'R-squared'],
-    answer: 3
-  }
-];
+const questionMap = {
+  ml: [
+    {
+      question: 'Which algorithm can be used for both classification and regression?',
+      options: ['K-means', 'Linear Regression', 'Decision Tree', 'Apriori'],
+      answer: 3
+    },
+    {
+      question: 'What does an activation function introduce in a neural network?',
+      options: ['Bias', 'Non-linearity', 'Regularization', 'Momentum'],
+      answer: 2
+    },
+    {
+      question: 'Which metric is suitable for evaluating imbalanced classification problems?',
+      options: ['Accuracy', 'Mean Squared Error', 'Precision-Recall', 'R-squared'],
+      answer: 3
+    }
+  ],
+  agents: [
+    {
+      question: 'What component of an AI agent selects actions to achieve goals?',
+      options: ['Planner', 'Sensor', 'Actuator', 'Environment'],
+      answer: 1
+    },
+    {
+      question: 'Which architecture combines perception, decision, and action layers?',
+      options: ['BDI', 'Reactive', 'Hybrid', 'Rule-based'],
+      answer: 3
+    },
+    {
+      question: "An agent's ability to consider consequences of actions is called?",
+      options: ['Learning', 'Deliberation', 'Perception', 'Execution'],
+      answer: 2
+    }
+  ],
+  lm: [
+    {
+      question: 'What does a language model assign to sequences of words?',
+      options: ['Syntax trees', 'Part-of-speech tags', 'Probability', 'Embeddings'],
+      answer: 3
+    },
+    {
+      question: 'Which technique predicts the next word given previous words?',
+      options: ['Clustering', 'Next-token prediction', 'Machine translation', 'Summarization'],
+      answer: 2
+    },
+    {
+      question: 'What is a common pretraining objective for transformers?',
+      options: ['Autoencoding', 'Reinforcement learning', 'Rule mining', 'Decision trees'],
+      answer: 1
+    }
+  ],
+  rag: [
+    {
+      question: 'What does RAG combine?',
+      options: ['Generation with perception', 'Retrieval with generation', 'Planning with control', 'Classification with regression'],
+      answer: 2
+    },
+    {
+      question: 'In RAG, retrieved documents are used to:',
+      options: ['Train the model from scratch', 'Improve prompts', 'Provide context for generation', 'Evaluate system performance'],
+      answer: 3
+    },
+    {
+      question: 'Which component retrieves relevant documents in RAG?',
+      options: ['Generator', 'Retriever', 'Decoder', 'Optimizer'],
+      answer: 2
+    }
+  ]
+};
 
 function askQuestion() {
-  const q = mlQuestions[Math.floor(Math.random() * mlQuestions.length)];
+  const selected = Array.from(document.querySelectorAll('.topic-checkbox:checked')).map(cb => cb.value);
+  const activeTopics = selected.length ? selected : ['ml'];
+  const pool = activeTopics.flatMap(topic => questionMap[topic]);
+  const q = pool[Math.floor(Math.random() * pool.length)];
   const choices = q.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n');
   const response = prompt(`${q.question}\n${choices}`);
   return parseInt(response, 10) === q.answer;
