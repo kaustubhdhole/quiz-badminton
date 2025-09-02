@@ -6,10 +6,21 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
-  <div id="score">Score: 0</div>
-  <div id="points-container"></div>
-  <div id="message" class="hidden"></div>
+  <div id="game-area">
+    <canvas id="gameCanvas"></canvas>
+    <div id="score">Score: 0</div>
+    <div id="points-container"></div>
+    <div id="message" class="hidden"></div>
+  </div>
+  <aside id="rules">
+    <h2>Rules</h2>
+    <ul>
+      <li>Use the arrow keys or mouse wheel to move the skateboard.</li>
+      <li>Break blue bricks for +10 points.</li>
+      <li>Green bricks trigger a quiz for +50 points if answered correctly.</li>
+      <li>Missing the football ends the game.</li>
+    </ul>
+  </aside>
   <script src="script.js"></script>
 </body>
 </html>

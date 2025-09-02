@@ -1,8 +1,10 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const rulesDiv = document.getElementById('rules');
 
 function resizeCanvas() {
-  canvas.width = window.innerWidth;
+  const availableWidth = window.innerWidth - rulesDiv.offsetWidth;
+  canvas.width = availableWidth;
   canvas.height = window.innerHeight;
 }
 resizeCanvas();
