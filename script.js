@@ -32,23 +32,49 @@ let bricks = [];
 for (let c = 0; c < brickColumnCount; c++) {
   bricks[c] = [];
   for (let r = 0; r < brickRowCount; r++) {
-    bricks[c][r] = { x: 0, y: 0, status: 1, special: false, hidden: false };
+    bricks[c][r] = { x: 0, y: 0, status: 1, quiz: false };
   }
 }
 
-let specials = 3;
-while (specials > 0) {
+// designate random green bricks that trigger quiz questions
+let quizBricks = 3;
+while (quizBricks > 0) {
   const c = Math.floor(Math.random() * brickColumnCount);
   const r = Math.floor(Math.random() * brickRowCount);
   const b = bricks[c][r];
-  if (!b.special && !b.hidden) {
-    b.special = true;
-    b.hidden = true;
-    specials--;
+  if (!b.quiz) {
+    b.quiz = true;
+    quizBricks--;
   }
 }
 
 let remainingBricks = brickRowCount * brickColumnCount;
+
+// Machine Learning MCQs
+const mlQuestions = [
+  {
+    question: 'Which algorithm can be used for both classification and regression?',
+    options: ['K-means', 'Linear Regression', 'Decision Tree', 'Apriori'],
+    answer: 3
+  },
+  {
+    question: 'What does an activation function introduce in a neural network?',
+    options: ['Bias', 'Non-linearity', 'Regularization', 'Momentum'],
+    answer: 2
+  },
+  {
+    question: 'Which metric is suitable for evaluating imbalanced classification problems?',
+    options: ['Accuracy', 'Mean Squared Error', 'Precision-Recall', 'R-squared'],
+    answer: 3
+  }
+];
+
+function askQuestion() {
+  const q = mlQuestions[Math.floor(Math.random() * mlQuestions.length)];
+  const choices = q.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n');
+  const response = prompt(`${q.question}\n${choices}`);
+  return parseInt(response, 10) === q.answer;
+}
 
 function keyDownHandler(e) {
   if (e.key === 'Right' || e.key === 'ArrowRight') {
@@ -86,23 +112,16 @@ function drawBricks() {
   for (let c = 0; c < brickColumnCount; c++) {
     for (let r = 0; r < brickRowCount; r++) {
       const b = bricks[c][r];
-      if (b.status === 1 && !b.hidden) {
+      if (b.status === 1) {
         const brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
         const brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
         b.x = brickX;
         b.y = brickY;
         ctx.beginPath();
         ctx.rect(brickX, brickY, brickWidth, brickHeight);
-        ctx.fillStyle = '#0095DD';
+        ctx.fillStyle = b.quiz ? '#27ae60' : '#0095DD';
         ctx.fill();
         ctx.closePath();
-      } else if (b.status === 2) {
-        ctx.beginPath();
-        ctx.rect(b.x, b.y, brickWidth, brickHeight);
-        ctx.fillStyle = '#27ae60';
-        ctx.fill();
-        ctx.closePath();
-        b.status = 0;
       }
     }
   }
@@ -112,20 +131,20 @@ function collisionDetection() {
   for (let c = 0; c < brickColumnCount; c++) {
     for (let r = 0; r < brickRowCount; r++) {
       const b = bricks[c][r];
-      if (b.status === 1 || b.hidden) {
+      if (b.status === 1) {
         const brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
         const brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
         b.x = brickX;
         b.y = brickY;
         if (x > brickX && x < brickX + brickWidth && y > brickY && y < brickY + brickHeight) {
           dy = -dy;
-          if (b.hidden) {
-            b.hidden = false;
-            b.status = 2;
-            score += 50;
-            showPoints('+50', brickX + brickWidth / 2, brickY);
+          b.status = 0;
+          if (b.quiz) {
+            if (askQuestion()) {
+              score += 50;
+              showPoints('+50', brickX + brickWidth / 2, brickY);
+            }
           } else {
-            b.status = 0;
             score += 10;
             showPoints('+10', brickX + brickWidth / 2, brickY);
           }
@@ -155,7 +174,7 @@ function showPoints(text, x, y) {
 
 function endGame() {
   const message = document.getElementById('message');
-  message.textContent = `Congratulations! Final Score: ${score}`;
+  message.textContent = `Game Over! Final Score: ${score}`;
   message.classList.remove('hidden');
   cancelAnimationFrame(animationId);
 }
@@ -176,7 +195,8 @@ function draw() {
     if (x > skateboardX && x < skateboardX + skateboardWidth) {
       dy = -dy;
     } else {
-      dy = -dy;
+      endGame();
+      return;
     }
   }
 
@@ -193,3 +213,4 @@ function draw() {
 }
 
 let animationId = requestAnimationFrame(draw);
+
