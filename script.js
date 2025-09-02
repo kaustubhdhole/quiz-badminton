@@ -50,15 +50,23 @@ window.addEventListener('resize', () => {
   if (skateboardX > canvas.width - skateboardWidth) {
     skateboardX = canvas.width - skateboardWidth;
   }
+  updateBrickLayout();
 });
 
 const brickRowCount = 5;
 const brickColumnCount = 7;
-const brickWidth = 55;
+let brickWidth = 55;
 const brickHeight = 20;
 const brickPadding = 10;
-const brickOffsetTop = 30;
-const brickOffsetLeft = 30;
+const brickOffsetTop = 60;
+let brickOffsetLeft = 30;
+
+function updateBrickLayout() {
+  brickWidth =
+    (canvas.width - 2 * brickOffsetLeft - (brickColumnCount - 1) * brickPadding) /
+    brickColumnCount;
+}
+updateBrickLayout();
 
 let bricks = [];
 for (let c = 0; c < brickColumnCount; c++) {
