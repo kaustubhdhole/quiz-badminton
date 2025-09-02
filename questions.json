@@ -1,0 +1,3053 @@
+{
+    "parallelism": [
+        {
+            "question": "In model parallel training, which approach splits tensors across devices to keep layers intact?",
+            "options": [
+                "Pipeline parallelism",
+                "Gradient checkpointing",
+                "Data parallelism",
+                "Tensor parallelism"
+            ],
+            "answer": 3,
+            "hint": "Think about dividing a single layer's computation.",
+            "elaboration": "Tensor parallelism slices tensors so one layer spans multiple devices. This allows extremely wide layers to fit in memory while executing in parallel."
+        },
+        {
+            "question": "Which technique overlaps computation with communication to speed up distributed training?",
+            "options": [
+                "All-reduce",
+                "Deep gradient compression",
+                "Pipelining",
+                "Dropout"
+            ],
+            "answer": 2,
+            "hint": "It lets one part compute while another sends data.",
+            "elaboration": "Pipelining overlaps compute and communication across stages. Stages work simultaneously so that data is transferred while other layers process."
+        },
+        {
+            "question": "Data parallelism primarily duplicates which component across devices?",
+            "options": [
+                "Optimizer state",
+                "Activation memory",
+                "Gradient buffers",
+                "Model weights"
+            ],
+            "answer": 3,
+            "hint": "Consider what must be identical on each GPU.",
+            "elaboration": "Data parallelism replicates model weights on each device. Each replica processes a different data shard and gradients are averaged to stay synchronized."
+        },
+        {
+            "question": "What is the main goal of ZeRO stage 3?",
+            "options": [
+                "Reduce activation recomputation",
+                "Increase batch size",
+                "Shard optimizer states, gradients, and parameters",
+                "Prune attention heads"
+            ],
+            "answer": 2,
+            "hint": "It's aimed at saving memory across workers.",
+            "elaboration": "ZeRO stage 3 shards parameters, gradients, and optimizer state. By distributing these across workers, it significantly reduces memory per GPU."
+        },
+        {
+            "question": "Which communication primitive is commonly used to synchronize gradients across GPUs?",
+            "options": [
+                "Broadcast",
+                "Scatter",
+                "Gather",
+                "All-reduce"
+            ],
+            "answer": 3,
+            "hint": "This operation shares gradient sums among GPUs.",
+            "elaboration": "All-reduce sums gradients so every replica syncs. This collective operation ensures consistent weight updates across devices."
+        },
+        {
+            "question": "Pipeline parallelism can cause which type of inefficiency at the beginning and end of a batch?",
+            "options": [
+                "Load imbalance",
+                "Communication overlap",
+                "Bubble overhead",
+                "Gradient staleness"
+            ],
+            "answer": 2,
+            "hint": "Empty slots form as the pipeline fills or drains.",
+            "elaboration": "Bubble overhead comes from pipeline startup and drain time. During these phases some stages are idle, lowering overall efficiency."
+        },
+        {
+            "question": "Tensor parallelism often relies on which operation to split matrix multiplication across GPUs?",
+            "options": [
+                "All-to-all",
+                "Megatron-LM mapping",
+                "Ring exchange",
+                "Reduce-scatter"
+            ],
+            "answer": 3,
+            "hint": "It splits matrices and sums partial results.",
+            "elaboration": "Reduce-scatter distributes pieces of a matrix multiplication. Partial results are reduced as they are scattered to each GPU."
+        },
+        {
+            "question": "Gradient checkpointing trades memory for what?",
+            "options": [
+                "Faster convergence",
+                "Reduced communication",
+                "Extra computation",
+                "Better accuracy"
+            ],
+            "answer": 2,
+            "hint": "You recompute activations to save space.",
+            "elaboration": "Gradient checkpointing trades extra compute to reduce memory. Intermediate activations are recomputed during backpropagation to save storage."
+        },
+        {
+            "question": "Which scheduling strategy minimizes pipeline bubbles in GPipe?",
+            "options": [
+                "Data sharding",
+                "All-reduce",
+                "Gradient accumulation",
+                "1F1B"
+            ],
+            "answer": 3,
+            "hint": "Alternating forward and backward passes keeps stages busy.",
+            "elaboration": "The 1F1B schedule minimizes pipeline bubbles. It alternates forward and backward microbatches to keep all pipeline stages busy."
+        },
+        {
+            "question": "Sharding the embedding table across workers is an example of which technique?",
+            "options": [
+                "Weight tying",
+                "Batch splitting",
+                "Optimizer fusion",
+                "Model parallelism"
+            ],
+            "answer": 3,
+            "hint": "Large embeddings may be split across devices.",
+            "elaboration": "Sharding embeddings is a form of model parallelism. Large vocabulary tables are split across devices so each GPU stores part of the matrix."
+        }
+    ],
+    "inference": [
+        {
+            "question": "Which caching technique speeds up autoregressive decoding by reusing past key/value tensors?",
+            "options": [
+                "Gradient checkpoint",
+                "Dynamic quantization",
+                "Weight tying",
+                "Attention caching"
+            ],
+            "answer": 3,
+            "hint": "It avoids recomputing attention for prior tokens.",
+            "elaboration": "Attention caching stores previously computed key/value pairs for reuse. It prevents redundant computation when generating long sequences."
+        },
+        {
+            "question": "Speculative decoding uses a small model to propose tokens and a large model to do what?",
+            "options": [
+                "Prune heads",
+                "Expand the sequence",
+                "Quantize weights",
+                "Verify the proposal"
+            ],
+            "answer": 3,
+            "hint": "The bigger model checks the draft tokens.",
+            "elaboration": "The large model verifies proposed tokens from the small model. This reduces latency by letting the lightweight model do most of the searching."
+        },
+        {
+            "question": "What does batching requests at inference time primarily improve?",
+            "options": [
+                "Model accuracy",
+                "Memory consumption",
+                "Latency for a single request",
+                "Throughput"
+            ],
+            "answer": 3,
+            "hint": "Aggregating multiple examples keeps the GPU busy.",
+            "elaboration": "Batching improves overall throughput on the accelerator. Processing multiple requests together keeps the GPU fully utilized."
+        },
+        {
+            "question": "Which precision is commonly used for weights during inference to reduce memory without large accuracy loss?",
+            "options": [
+                "float64",
+                "bfloat16",
+                "float32",
+                "int8"
+            ],
+            "answer": 3,
+            "hint": "Think about aggressive quantization for deployment.",
+            "elaboration": "Int8 quantization cuts memory with little accuracy drop. Lower precision weights also speed up matrix multiplications."
+        },
+        {
+            "question": "Transformer-based models generate tokens one at a time because of what property?",
+            "options": [
+                "Layer normalization",
+                "Multi-head attention",
+                "Causal masking",
+                "Dropout"
+            ],
+            "answer": 2,
+            "hint": "Look at how attention sees only past positions.",
+            "elaboration": "Causal masking forces generation one token at a time. Tokens only attend to earlier positions to preserve the autoregressive property."
+        },
+        {
+            "question": "In vLLM, what feature allows highly concurrent request serving?",
+            "options": [
+                "Tensor parallelism",
+                "Pipeline bubbles",
+                "Paged attention",
+                "Gradient clipping"
+            ],
+            "answer": 2,
+            "hint": "It manages key/value memory more flexibly.",
+            "elaboration": "Paged attention lets vLLM serve many concurrent prompts. Key/value memory is paged so long sequences from multiple users can coexist."
+        },
+        {
+            "question": "The logits of which tokens are typically filtered out during nucleus sampling?",
+            "options": [
+                "The [MASK] token",
+                "All punctuation tokens",
+                "Tokens with max frequency",
+                "Tokens outside the top-p cumulative mass"
+            ],
+            "answer": 3,
+            "hint": "Nucleus sampling keeps only the most probable tokens.",
+            "elaboration": "Tokens outside the top-p mass are filtered out. This retains only the most likely words, giving more coherent generations."
+        },
+        {
+            "question": "What does beam search trade for improved quality compared to greedy decoding?",
+            "options": [
+                "More GPU memory",
+                "Lower precision",
+                "Higher compute cost",
+                "Fewer tokens"
+            ],
+            "answer": 2,
+            "hint": "It explores multiple candidate sequences.",
+            "elaboration": "Beam search spends more compute to get higher quality. By exploring several candidate continuations, it often finds better sequences."
+        },
+        {
+            "question": "Which method speeds up inference by merging multiple attention heads into one?",
+            "options": [
+                "KV caching",
+                "Quantization",
+                "Head pruning",
+                "Knowledge distillation"
+            ],
+            "answer": 2,
+            "hint": "It discards or combines redundant heads.",
+            "elaboration": "Head pruning merges heads to reduce work. Removing redundant attention heads speeds up inference with minimal loss."
+        },
+        {
+            "question": "Token streaming APIs primarily reduce what metric from the user's perspective?",
+            "options": [
+                "Cost",
+                "Energy usage",
+                "Perceived latency",
+                "Token perplexity"
+            ],
+            "answer": 2,
+            "hint": "They send partial results early.",
+            "elaboration": "Streaming tokens lowers perceived latency for users. Partial outputs appear quickly even if the entire generation isn't finished."
+        }
+    ],
+    "alignment": [
+        {
+            "question": "RLHF uses a reward model trained from what type of data?",
+            "options": [
+                "Masked tokens",
+                "Backtranslation pairs",
+                "Human preference comparisons",
+                "Gradient noise"
+            ],
+            "answer": 2,
+            "hint": "Think about how humans judge outputs pairwise.",
+            "elaboration": "The reward model learns from human preference comparisons. It predicts which of two outputs a human would prefer, guiding RLHF."
+        },
+        {
+            "question": "Constitutional AI replaces human-written rewards with what?",
+            "options": [
+                "Synthetic demonstrations",
+                "Policy distillation",
+                "Refusals",
+                "Fixed self-consistency rules"
+            ],
+            "answer": 3,
+            "hint": "It follows a set of written principles.",
+            "elaboration": "Constitutional AI uses fixed self-consistency rules instead of human scores. The policy is optimized to follow these written principles."
+        },
+        {
+            "question": "Which technique fine-tunes a language model to follow instructions using curated prompts and completions?",
+            "options": [
+                "LoRA",
+                "Token pruning",
+                "Instruction tuning",
+                "Byte pair encoding"
+            ],
+            "answer": 2,
+            "hint": "Popular approach for ChatGPT-style models.",
+            "elaboration": "Instruction tuning trains on prompt-completion pairs to follow directions. It improves a model's ability to respond to natural language instructions."
+        },
+        {
+            "question": "The term 'alignment tax' refers to what?",
+            "options": [
+                "Extra inference latency",
+                "Using more parameters",
+                "Lower perplexity",
+                "Additional compute for safety measures"
+            ],
+            "answer": 3,
+            "hint": "Alignment features often slow things down.",
+            "elaboration": "The alignment tax is extra compute spent on safety measures. Additional training or inference steps ensure the model behaves appropriately."
+        },
+        {
+            "question": "Why is reward hacking a challenge in RLHF?",
+            "options": [
+                "Rewards are computed in real-time",
+                "Too few prompts are used",
+                "The policy may exploit imperfections in the reward model",
+                "Trained on synthetic data"
+            ],
+            "answer": 2,
+            "hint": "Models can game imperfect reward functions.",
+            "elaboration": "Policies may exploit weaknesses in the reward model, known as reward hacking. They find loopholes that score well but produce undesirable outputs."
+        },
+        {
+            "question": "Which method attempts to prevent harmful output by generating multiple responses and selecting a safe one?",
+            "options": [
+                "Adversarial training",
+                "Topic blocking",
+                "Self-consistency decoding",
+                "DPO"
+            ],
+            "answer": 2,
+            "hint": "It picks the safest of several responses.",
+            "elaboration": "Self-consistency decoding chooses a safe answer among many. Generating multiple candidates and filtering reduces the chance of harmful content."
+        },
+        {
+            "question": "Anthropic's 'harmlessness training' combines supervised fine-tuning with what?",
+            "options": [
+                "Dropout",
+                "Token masking",
+                "Static prompts",
+                "Adversarially generated attacks"
+            ],
+            "answer": 3,
+            "hint": "It includes adversarial examples to teach caution.",
+            "elaboration": "Harmlessness training adds adversarially generated attacks during fine-tuning. The model learns to refuse or respond cautiously to dangerous prompts."
+        },
+        {
+            "question": "Alignment verification often relies on what kind of evaluator?",
+            "options": [
+                "Random sampling",
+                "Manual regex",
+                "Sequence length heuristics",
+                "Another language model"
+            ],
+            "answer": 3,
+            "hint": "Automated LM judges can scale better than humans.",
+            "elaboration": "Another language model often evaluates alignment automatically. This scalable judge approximates human feedback for large datasets."
+        },
+        {
+            "question": "Which approach directly optimizes the policy against a reward without sampling trajectories?",
+            "options": [
+                "Policy gradient",
+                "Behavior cloning",
+                "Direct preference optimization",
+                "Contrastive pretraining"
+            ],
+            "answer": 2,
+            "hint": "It's a recent alternative to PPO.",
+            "elaboration": "Direct preference optimization updates the policy using the reward without rollouts. It computes gradients on the reward model directly for efficiency."
+        },
+        {
+            "question": "Red teaming is primarily used for what purpose?",
+            "options": [
+                "Increasing training data size",
+                "Reducing parameters",
+                "Improving latency",
+                "Finding failure modes"
+            ],
+            "answer": 3,
+            "hint": "A practice borrowed from security testing.",
+            "elaboration": "Red teaming searches for failure modes before deployment. Teams intentionally try to break the system to surface hidden risks."
+        }
+    ],
+    "agents": [
+        {
+            "question": "The ReAct pattern combines which two types of model outputs?",
+            "options": [
+                "Latent codes and logits",
+                "Gradients and rewards",
+                "Images and text",
+                "Reasoning traces and actions"
+            ],
+            "answer": 3,
+            "hint": "One handles reasoning steps, the other triggers tools.",
+            "elaboration": "ReAct combines reasoning traces with actions such as tool calls. The model interleaves thinking steps with API invocations."
+        },
+        {
+            "question": "Which component plans the next step in a typical agent loop?",
+            "options": [
+                "Memory vector store",
+                "Knowledge graph",
+                "Output formatter",
+                "Policy or planner"
+            ],
+            "answer": 3,
+            "hint": "It decides what action to take next.",
+            "elaboration": "The policy or planner selects the next step in the loop. It determines whether to call a tool, ask for more input, or produce a final answer."
+        },
+        {
+            "question": "Toolformer augments training data by inserting what?",
+            "options": [
+                "Synthetic mistakes",
+                "Reverse prompts",
+                "API calls",
+                "Extra padding"
+            ],
+            "answer": 2,
+            "hint": "It shows the model how to call external APIs.",
+            "elaboration": "Toolformer inserts API calls into data to teach tool use. The model learns from these examples when and how to call external services."
+        },
+        {
+            "question": "Why are agents typically more expensive than direct completion?",
+            "options": [
+                "They require smaller models",
+                "They operate in fixed time",
+                "They always run on CPUs",
+                "They involve multiple model calls and tool use"
+            ],
+            "answer": 3,
+            "hint": "Consider the cost of iterative reasoning.",
+            "elaboration": "Agents use multiple model calls and tools, so they are pricier than single completions. Each iteration adds latency and compute cost."
+        },
+        {
+            "question": "Which approach keeps a record of previous steps to give the agent context?",
+            "options": [
+                "Gradient descent",
+                "Batch normalization",
+                "Weight tying",
+                "Scratchpad"
+            ],
+            "answer": 3,
+            "hint": "It's like the agent's memory log.",
+            "elaboration": "A scratchpad records intermediate steps for context. Past thoughts or actions are stored so the agent can reference them later."
+        },
+        {
+            "question": "Function calling in GPT models allows the model to do what?",
+            "options": [
+                "Generate images",
+                "Run faster",
+                "Modify its weights",
+                "Return structured JSON describing tool use"
+            ],
+            "answer": 3,
+            "hint": "Think of how the API encodes function parameters.",
+            "elaboration": "Function calling returns structured JSON describing which tool to run. The model outputs arguments that client code executes."
+        },
+        {
+            "question": "LangChain's agent framework primarily organizes what?",
+            "options": [
+                "Data parallel replicas",
+                "GPU kernels",
+                "Sequences of tool invocations",
+                "Matrix factorizations"
+            ],
+            "answer": 2,
+            "hint": "It strings together multiple operations.",
+            "elaboration": "LangChain organizes sequences of tool invocations. It manages state and orchestration for complex workflows."
+        },
+        {
+            "question": "Action observation loops are necessary for agents interacting with what type of environment?",
+            "options": [
+                "Pure text",
+                "Static images",
+                "External stateful systems",
+                "Trained policies"
+            ],
+            "answer": 2,
+            "hint": "Imagine operating software with persistent state.",
+            "elaboration": "Action-observation loops interact with external stateful systems. The agent acts, observes changes, and decides how to proceed."
+        },
+        {
+            "question": "OpenAI's function calling requires the user to provide what to the model?",
+            "options": [
+                "Reward signals",
+                "GPU usage",
+                "API specifications",
+                "Dropout rate"
+            ],
+            "answer": 2,
+            "hint": "The model needs to know available tools.",
+            "elaboration": "OpenAI's function calling requires API specifications describing tools. The model relies on this schema to format function arguments correctly."
+        },
+        {
+            "question": "Which technique helps an agent reduce hallucination when executing code?",
+            "options": [
+                "Loop unrolling",
+                "Sequence bucketing",
+                "Weight averaging",
+                "Sandboxed execution with error feedback"
+            ],
+            "answer": 3,
+            "hint": "It runs code safely and reports errors.",
+            "elaboration": "Sandboxed execution with error feedback reduces hallucinated code. Running code in isolation and reporting errors guides the agent to correct mistakes."
+        }
+    ],
+    "pretraining": [
+        {
+            "question": "Which loss is standard for autoregressive language model pretraining?",
+            "options": [
+                "CTC loss",
+                "Triplet loss",
+                "Cross-entropy on next token prediction",
+                "Contrastive loss"
+            ],
+            "answer": 2,
+            "hint": "Think about predicting the next word.",
+            "elaboration": "Cross-entropy on next token prediction is the standard loss for autoregressive LMs. Minimizing this loss trains the model to predict sequences accurately."
+        },
+        {
+            "question": "Compute-optimal model scaling suggests balancing parameter count with what?",
+            "options": [
+                "Vocabulary size",
+                "Batch size",
+                "Gradient noise",
+                "Dataset tokens"
+            ],
+            "answer": 3,
+            "hint": "It ties compute to the amount of training data.",
+            "elaboration": "Compute-optimal scaling balances parameters with dataset tokens. Spending compute on larger models only makes sense if you also increase data."
+        },
+        {
+            "question": "The Chinchilla paper argues that many prior models were what?",
+            "options": [
+                "Too deep",
+                "Using too small a vocabulary",
+                "Over-regularized",
+                "Undertrained on tokens"
+            ],
+            "answer": 3,
+            "hint": "They didn't see enough data for their size.",
+            "elaboration": "Chinchilla showed many models were undertrained on tokens. Increasing dataset size can yield better performance without scaling model size."
+        },
+        {
+            "question": "Text deduplication before training primarily reduces which risk?",
+            "options": [
+                "Vocabulary mismatch",
+                "Long context",
+                "Overfitting",
+                "Hardware failures"
+            ],
+            "answer": 2,
+            "hint": "Repeated examples can cause memorization.",
+            "elaboration": "Deduplicating text reduces overfitting risk. Removing near-duplicate documents prevents memorization and improves generalization."
+        },
+        {
+            "question": "Why are large batch sizes sometimes detrimental during pretraining?",
+            "options": [
+                "They increase variance",
+                "They require smaller learning rates",
+                "They reduce GPU utilization",
+                "They lead to poor generalization"
+            ],
+            "answer": 3,
+            "hint": "Bigger batches can converge to sharp minima.",
+            "elaboration": "Very large batches may hurt generalization. They converge to sharp minima that do not transfer well to new data."
+        },
+        {
+            "question": "Masking the input as in BERT leads to what type of training objective?",
+            "options": [
+                "Reinforcement learning",
+                "Sequence labeling",
+                "Denoising autoencoding",
+                "Next sentence prediction only"
+            ],
+            "answer": 2,
+            "hint": "The model must reconstruct masked tokens.",
+            "elaboration": "Masking leads to a denoising autoencoding objective. The model reconstructs missing tokens, enabling bidirectional context."
+        },
+        {
+            "question": "Curriculum learning adjusts what aspect of training over time?",
+            "options": [
+                "Model depth",
+                "Weight decay",
+                "Data difficulty",
+                "Optimizer type"
+            ],
+            "answer": 2,
+            "hint": "Start easy then move to harder examples.",
+            "elaboration": "Curriculum learning varies data difficulty over time. Starting with easier samples can stabilize training before introducing harder cases."
+        },
+        {
+            "question": "Tokenization with sentencepiece uses which subword strategy?",
+            "options": [
+                "Whitespace splitting",
+                "WordPiece",
+                "Unigram language modeling",
+                "Character hashing"
+            ],
+            "answer": 2,
+            "hint": "It's not byte-pair or wordpiece.",
+            "elaboration": "SentencePiece often uses a unigram model for subwords. This approach selects a vocabulary that balances coverage and compactness."
+        },
+        {
+            "question": "Why might you mix code and text data during pretraining?",
+            "options": [
+                "To reduce vocabulary",
+                "To lower compute cost",
+                "To improve reasoning and precision",
+                "To remove comments"
+            ],
+            "answer": 2,
+            "hint": "Structured code can teach logical patterns.",
+            "elaboration": "Mixing code and text can improve reasoning precision. Code introduces structured patterns that benefit logical thinking."
+        },
+        {
+            "question": "Gradient noise scale is often used to measure what?",
+            "options": [
+                "Length of training",
+                "Optimizer stability",
+                "Effectiveness of scaling batch size",
+                "Amount of dropout"
+            ],
+            "answer": 2,
+            "hint": "It indicates how noisy the gradients are.",
+            "elaboration": "Gradient noise scale measures how well larger batches work. A low noise scale suggests gradient estimates are stable when batch size grows."
+        }
+    ],
+    "retrieval": [
+        {
+            "question": "In retrieval-augmented generation, embeddings of the query are compared against what?",
+            "options": [
+                "Model parameters",
+                "GPU kernels",
+                "A document index",
+                "Optimizer states"
+            ],
+            "answer": 2,
+            "hint": "Think of the retrieval step before generation.",
+            "elaboration": "Query embeddings are matched against a document index. The closest documents are retrieved to supply relevant context."
+        },
+        {
+            "question": "Faiss is commonly used to accelerate which operation?",
+            "options": [
+                "Neural network training",
+                "Model quantization",
+                "Tokenization",
+                "Approximate nearest neighbor search"
+            ],
+            "answer": 3,
+            "hint": "It's about fast similarity lookups.",
+            "elaboration": "Faiss accelerates approximate nearest neighbor search. It uses optimized indexing structures on CPUs or GPUs for fast retrieval."
+        },
+        {
+            "question": "What is the main benefit of a hybrid search combining dense and sparse retrieval?",
+            "options": [
+                "Lower latency",
+                "Reduced memory usage",
+                "Improved recall across document types",
+                "Fewer API calls"
+            ],
+            "answer": 2,
+            "hint": "It merges lexical and semantic matches.",
+            "elaboration": "Hybrid search improves recall across document types. Combining dense vectors with sparse keywords covers more query styles."
+        },
+        {
+            "question": "Which component integrates retrieved passages into the model's context?",
+            "options": [
+                "Vector index",
+                "Retriever",
+                "Fusion-in-decoder",
+                "Optimizer"
+            ],
+            "answer": 2,
+            "hint": "It's part of the generator model.",
+            "elaboration": "Fusion-in-decoder integrates retrieved passages into the context. The generator attends to these passages while producing the answer."
+        },
+        {
+            "question": "Why might you use retrieval during pretraining?",
+            "options": [
+                "To reduce dataset size",
+                "To increase dropout",
+                "To provide grounding information",
+                "To compress weights"
+            ],
+            "answer": 2,
+            "hint": "External documents can provide more knowledge.",
+            "elaboration": "Retrieval during pretraining provides grounding information. It exposes the model to external knowledge beyond the raw corpus."
+        },
+        {
+            "question": "BM25 is an algorithm for what kind of retrieval?",
+            "options": [
+                "Dense vector",
+                "Inverse scaling",
+                "Document summarization",
+                "Sparse lexical"
+            ],
+            "answer": 3,
+            "hint": "Classic bag-of-words ranking.",
+            "elaboration": "BM25 performs sparse lexical retrieval based on term frequency. High-scoring documents share many exact words with the query."
+        },
+        {
+            "question": "RAG models often refresh their index periodically to",
+            "options": [
+                "Improve GPU utilization",
+                "Reduce training time",
+                "Change tokenizer",
+                "Include new knowledge"
+            ],
+            "answer": 3,
+            "hint": "Keeping the database up to date.",
+            "elaboration": "Refreshing the index lets the model include new knowledge. It keeps the retriever aware of recently added documents."
+        },
+        {
+            "question": "When using a vector database, what speed-quality tradeoff does the 'HNSW' algorithm control?",
+            "options": [
+                "Batch size vs. latency",
+                "Index size vs. parameter count",
+                "Search accuracy vs. time",
+                "Gradient precision"
+            ],
+            "answer": 2,
+            "hint": "Tune the graph parameters for accuracy.",
+            "elaboration": "HNSW parameters trade search accuracy for time. Adjusting them lets you balance speed against quality in large indexes."
+        },
+        {
+            "question": "ColBERT separates each token into embeddings to enable what?",
+            "options": [
+                "Byte pair encoding",
+                "Mixture of experts",
+                "Model parallel training",
+                "Fine-grained relevance scoring"
+            ],
+            "answer": 3,
+            "hint": "Allows comparing individual words.",
+            "elaboration": "ColBERT's token-level embeddings enable fine-grained scoring. Each token is compared separately for more precise matching."
+        },
+        {
+            "question": "Dense retrieval often uses which training method to learn representations?",
+            "options": [
+                "Contrastive learning",
+                "Causal language modeling",
+                "Decision transformers",
+                "Neural style transfer"
+            ],
+            "answer": 0,
+            "hint": "Think about positive and negative pairs.",
+            "elaboration": "Dense retrieval commonly uses contrastive learning. The model is trained with positive and negative pairs to separate relevant from irrelevant docs."
+        }
+    ],
+    "gpus": [
+        {
+            "question": "Which type of GPU memory is typically the smallest but fastest?",
+            "options": [
+                "HBM",
+                "Register file",
+                "L2 cache",
+                "Global memory"
+            ],
+            "answer": 1,
+            "hint": "It's inside each streaming multiprocessor.",
+            "elaboration": "Register files are the smallest and fastest GPU memory. They reside within each core for immediate access during computation."
+        },
+        {
+            "question": "FP16 tensor cores primarily speed up which operation?",
+            "options": [
+                "Disk IO",
+                "Matrix multiplications",
+                "Random number generation",
+                "Control flow"
+            ],
+            "answer": 1,
+            "hint": "Think of dense linear algebra.",
+            "elaboration": "Tensor cores speed up FP16 matrix multiplications. These specialized units handle fused multiply-add operations efficiently."
+        },
+        {
+            "question": "Peer-to-peer communication between GPUs on the same NVLink fabric avoids what?",
+            "options": [
+                "L2 cache",
+                "Host CPU memory",
+                "Kernel launches",
+                "Shared memory"
+            ],
+            "answer": 1,
+            "hint": "Data moves directly GPU-to-GPU.",
+            "elaboration": "Peer-to-peer NVLink transfers avoid host CPU memory. Data moves directly between GPUs, reducing latency."
+        },
+        {
+            "question": "Which metric best indicates how fully the GPU compute units are utilized?",
+            "options": [
+                "GPU temperature",
+                "SM occupancy",
+                "Memory capacity",
+                "PCIe bandwidth"
+            ],
+            "answer": 1,
+            "hint": "Measures how many warps are active.",
+            "elaboration": "SM occupancy best reflects compute utilization. Higher occupancy means more warps run concurrently on the streaming multiprocessor."
+        },
+        {
+            "question": "The CUDA kernel launch overhead becomes significant when launching how many kernels?",
+            "options": [
+                "Millions of very small kernels",
+                "A few large kernels",
+                "Any number of kernels",
+                "Kernels with large registers"
+            ],
+            "answer": 0,
+            "hint": "Launching many tiny kernels is inefficient.",
+            "elaboration": "Millions of very small kernels make launch overhead noticeable. Each launch has a fixed cost that dominates when kernels are tiny."
+        },
+        {
+            "question": "Mixed precision training relies on which numerical format for master weights?",
+            "options": [
+                "float64",
+                "float32",
+                "bfloat16",
+                "int8"
+            ],
+            "answer": 1,
+            "hint": "Gradients accumulate in higher precision.",
+            "elaboration": "Mixed precision keeps master weights in float32. It maintains numerical stability while activations use lower precision."
+        },
+        {
+            "question": "Which GPU feature enables running large models that don't fit entirely in memory?",
+            "options": [
+                "Unified memory paging",
+                "Gradient scaling",
+                "Warp shuffling",
+                "Thread coarsening"
+            ],
+            "answer": 0,
+            "hint": "Pages data in and out automatically.",
+            "elaboration": "Unified memory paging allows models larger than GPU memory. Pages are swapped between host and device as needed."
+        },
+        {
+            "question": "Tensor cores accelerate which computation pattern?",
+            "options": [
+                "Element-wise addition",
+                "Fused multiply-add matrix operations",
+                "Sorting algorithms",
+                "Random memory access"
+            ],
+            "answer": 1,
+            "hint": "They target matrix multiplications.",
+            "elaboration": "Tensor cores perform fused multiply-add matrix operations. This enables higher throughput for deep learning workloads."
+        },
+        {
+            "question": "GPU streams help overlap what kinds of operations?",
+            "options": [
+                "File reads",
+                "Compute and data transfers",
+                "Branch predictions",
+                "Kernel fusion"
+            ],
+            "answer": 1,
+            "hint": "Think concurrency.",
+            "elaboration": "GPU streams overlap compute and data transfers. Multiple streams let kernels and copies execute simultaneously."
+        },
+        {
+            "question": "How can kernel fusion improve performance on GPUs?",
+            "options": [
+                "By splitting operations into multiple kernels",
+                "By combining small kernels to reduce memory traffic",
+                "By copying data to CPU",
+                "By disabling caching"
+            ],
+            "answer": 1,
+            "hint": "Fewer launches and less global memory access.",
+            "elaboration": "Kernel fusion combines small kernels to cut memory traffic. It reduces global memory accesses and improves cache reuse."
+        }
+    ],
+    "scaling laws": [
+        {
+            "question": "Kaplan et al.'s scaling laws relate performance to what variables?",
+            "options": [
+                "Optimizer and batch size",
+                "Model size, dataset size, and compute",
+                "Tokenization and beam width",
+                "Number of layers only"
+            ],
+            "answer": 1,
+            "hint": "Think about the three main axes of scale.",
+            "elaboration": "Performance depends on model size, dataset size, and compute. Kaplan et al. quantified how error decreases as each of these grows."
+        },
+        {
+            "question": "As models scale, the optimal ratio of data to parameters was updated by which paper?",
+            "options": [
+                "GPT-2",
+                "Chinchilla",
+                "BERT",
+                "LoRA"
+            ],
+            "answer": 1,
+            "hint": "This paper revisited scaling after Kaplan.",
+            "elaboration": "The Chinchilla paper updated the optimal data/parameter ratio. It showed that previous models were too large for their datasets."
+        },
+        {
+            "question": "The term 'power law' in scaling refers to what relationship?",
+            "options": [
+                "Linear",
+                "Exponential",
+                "Polynomial where growth follows a constant exponent",
+                "Logarithmic"
+            ],
+            "answer": 2,
+            "hint": "Think y = a x^k.",
+            "elaboration": "A power law means growth follows a constant exponent. Doubling compute yields a predictable improvement according to the exponent."
+        },
+        {
+            "question": "Scaling laws predict that performance improves smoothly as a function of what?",
+            "options": [
+                "Vocabulary size",
+                "Compute budget",
+                "Prompt length",
+                "Dropout rate"
+            ],
+            "answer": 1,
+            "hint": "More FLOPs typically yield better models.",
+            "elaboration": "Scaling laws show performance rises smoothly with compute budget. More training FLOPs steadily lower loss across orders of magnitude."
+        },
+        {
+            "question": "Which phenomenon occurs when scaling a model beyond data availability?",
+            "options": [
+                "Emergent abilities",
+                "Overfitting and diminishing returns",
+                "Lower training loss",
+                "Better privacy"
+            ],
+            "answer": 1,
+            "hint": "Too few examples for too big a model.",
+            "elaboration": "Scaling beyond data availability leads to overfitting and diminishing returns. Without enough examples, larger models memorize instead of generalize."
+        },
+        {
+            "question": "Compute-optimal scaling balances what two quantities?",
+            "options": [
+                "Learning rate and batch size",
+                "Model parameters and training tokens",
+                "Inference latency and cost",
+                "GPU memory and CPU memory"
+            ],
+            "answer": 1,
+            "hint": "It's about choosing model size vs. dataset size.",
+            "elaboration": "Compute-optimal scaling balances model parameters with training tokens. It prescribes how to allocate a fixed compute budget between size and data."
+        },
+        {
+            "question": "The 'effective data scaling law' suggests what about repeated data?",
+            "options": [
+                "Repeating data always helps",
+                "Too much repetition hurts generalization",
+                "It only matters for vision models",
+                "Scaling laws ignore repetition"
+            ],
+            "answer": 1,
+            "hint": "Duplicated examples matter less.",
+            "elaboration": "The effective data scaling law notes too much repetition hurts generalization. Repeated examples contribute less new information."
+        },
+        {
+            "question": "Which metric is often plotted versus model size to reveal scaling trends?",
+            "options": [
+                "FLOPs per second",
+                "Training loss or perplexity",
+                "Quantization bits",
+                "GPU temperature"
+            ],
+            "answer": 1,
+            "hint": "Look at how cross-entropy decreases.",
+            "elaboration": "Training loss or perplexity is often plotted versus model size. Such curves help diagnose whether a model is undertrained or too small."
+        },
+        {
+            "question": "When models get larger, which component of the training cost dominates?",
+            "options": [
+                "Data preprocessing",
+                "Compute FLOPs",
+                "Disk IO",
+                "Optimizer updates"
+            ],
+            "answer": 1,
+            "hint": "Consider arithmetic cost when models grow.",
+            "elaboration": "Compute FLOPs dominate training cost at large scales. Memory and other overheads become relatively minor compared to arithmetic."
+        },
+        {
+            "question": "Inverse scaling refers to tasks where performance does what as models grow?",
+            "options": [
+                "Improves logarithmically",
+                "Degrades with increased scale",
+                "Remains constant",
+                "Exceeds human level"
+            ],
+            "answer": 1,
+            "hint": "Bigger models do worse on these tasks.",
+            "elaboration": "Inverse scaling describes performance degrading as models grow. Some tasks see accuracy drop with scale due to misalignment with training objectives."
+        }
+    ],
+    "linear algebra": [
+        {
+            "question": "Matrix multiplication of A (m x k) and B (k x n) results in what shape?",
+            "options": [
+                "m x n",
+                "k x k",
+                "n x n",
+                "m x k"
+            ],
+            "answer": 0,
+            "hint": "Inner dimensions cancel, outer remain.",
+            "elaboration": "Multiplying m\u00d7k with k\u00d7n yields an m\u00d7n matrix. The inner dimensions cancel in the dot products while the outer define the output."
+        },
+        {
+            "question": "The dot product of two vectors measures what geometric property?",
+            "options": [
+                "Angle cosine scaled by norms",
+                "Vector cross area",
+                "Eigenvalue",
+                "Matrix rank"
+            ],
+            "answer": 0,
+            "hint": "It's related to cosine similarity.",
+            "elaboration": "The dot product equals norms times the cosine of the angle between vectors. It measures how aligned two vectors are in space."
+        },
+        {
+            "question": "Which decomposition expresses a matrix as U\u03a3V^T?",
+            "options": [
+                "QR decomposition",
+                "Cholesky decomposition",
+                "Singular value decomposition",
+                "Eigen decomposition"
+            ],
+            "answer": 2,
+            "hint": "It's widely used for PCA.",
+            "elaboration": "Singular value decomposition expresses a matrix as U\u03a3V^T. This factorization underlies PCA and reveals matrix rank."
+        },
+        {
+            "question": "The eigenvectors of a symmetric matrix are always what?",
+            "options": [
+                "Complex-valued",
+                "Orthogonal",
+                "Zero",
+                "Non-invertible"
+            ],
+            "answer": 1,
+            "hint": "This property simplifies diagonalization.",
+            "elaboration": "Eigenvectors of a symmetric matrix are orthogonal. They form an orthonormal basis that diagonalizes the matrix."
+        },
+        {
+            "question": "Which operation is used to compute the projection of vector v onto vector u?",
+            "options": [
+                "Cross product",
+                "Outer product",
+                "Scalar multiplication of u by the dot product ratio",
+                "Matrix inversion"
+            ],
+            "answer": 2,
+            "hint": "Use the dot product of v with u.",
+            "elaboration": "Projection scales u by (v\u00b7u)/(u\u00b7u). This gives the component of v lying in the direction of u."
+        },
+        {
+            "question": "A positive definite matrix has all what?",
+            "options": [
+                "Negative eigenvalues",
+                "Eigenvalues equal to one",
+                "Positive eigenvalues",
+                "Zero determinant"
+            ],
+            "answer": 2,
+            "hint": "Its quadratic form is always positive.",
+            "elaboration": "A positive definite matrix has all positive eigenvalues. Consequently its quadratic form x^TAx is always strictly positive."
+        },
+        {
+            "question": "The Frobenius norm of a matrix is equivalent to what operation on its entries?",
+            "options": [
+                "Sum",
+                "Sum of squares and square root",
+                "Product",
+                "Maximum"
+            ],
+            "answer": 1,
+            "hint": "Like the Euclidean norm for matrices.",
+            "elaboration": "The Frobenius norm is the square root of the sum of squared entries. It is analogous to vector Euclidean norm for matrices."
+        },
+        {
+            "question": "Orthogonal matrices preserve which property?",
+            "options": [
+                "Vector norms",
+                "Matrix rank",
+                "Trace",
+                "Skewness"
+            ],
+            "answer": 0,
+            "hint": "They represent rotations or reflections.",
+            "elaboration": "Orthogonal matrices preserve vector norms. They represent rotations or reflections that don't distort lengths."
+        },
+        {
+            "question": "Which method efficiently solves Ax = b when A is triangular?",
+            "options": [
+                "Gaussian elimination",
+                "LU decomposition",
+                "Cholesky factorization",
+                "Forward or backward substitution"
+            ],
+            "answer": 3,
+            "hint": "No need for full elimination.",
+            "elaboration": "Forward or backward substitution solves triangular systems. It's efficient because each variable depends only on earlier ones."
+        },
+        {
+            "question": "The rank of a matrix equals the dimension of what space?",
+            "options": [
+                "Null space",
+                "Column space",
+                "Row space",
+                "Both row and column space"
+            ],
+            "answer": 3,
+            "hint": "Think about the number of independent vectors.",
+            "elaboration": "Rank equals the dimension of both the row and column space. It tells you how many independent directions span the matrix."
+        }
+    ],
+    "privacy": [
+        {
+            "question": "Differential privacy provides a bound on what?",
+            "options": [
+                "Computation time",
+                "Information an attacker can learn about any individual",
+                "Model size",
+                "Training epochs"
+            ],
+            "answer": 1,
+            "hint": "It's about limiting knowledge of single records.",
+            "elaboration": "Differential privacy bounds what an attacker can learn about any individual. Noise is added so outputs reveal little about single examples."
+        },
+        {
+            "question": "Gradient clipping in DPSGD helps enforce what property?",
+            "options": [
+                "Faster convergence",
+                "Bounded sensitivity",
+                "Lower perplexity",
+                "Higher recall"
+            ],
+            "answer": 1,
+            "hint": "Limits contribution of any one example.",
+            "elaboration": "Gradient clipping enforces bounded sensitivity in DPSGD. Combined with noise addition, it limits how much each data point influences updates."
+        },
+        {
+            "question": "Why is memorization of rare sequences a privacy concern?",
+            "options": [
+                "It increases model size",
+                "It can leak personal data verbatim",
+                "It slows inference",
+                "It lowers BLEU score"
+            ],
+            "answer": 1,
+            "hint": "Uncommon phrases might reappear in outputs.",
+            "elaboration": "Memorizing rare sequences can leak personal data verbatim. Attackers may prompt the model to reproduce unique strings from training."
+        },
+        {
+            "question": "Which method can remove training data after the model is trained?",
+            "options": [
+                "Data poisoning",
+                "Machine unlearning",
+                "Batch normalization",
+                "Weight decay"
+            ],
+            "answer": 1,
+            "hint": "It's about forgetting specific examples.",
+            "elaboration": "Machine unlearning can remove data after training. Special algorithms adjust weights so the erased examples leave no trace."
+        },
+        {
+            "question": "Synthetic data generation is sometimes used for privacy because it",
+            "options": [
+                "Avoids training entirely",
+                "Does not expose real user records",
+                "Requires smaller models",
+                "Uses less compute"
+            ],
+            "answer": 1,
+            "hint": "Fake data can stand in for originals.",
+            "elaboration": "Synthetic data avoids exposing real user records. It mimics statistical properties while protecting privacy."
+        },
+        {
+            "question": "Federated learning keeps raw data where?",
+            "options": [
+                "Central server",
+                "Each user's device",
+                "Public cloud",
+                "Random subset of nodes"
+            ],
+            "answer": 1,
+            "hint": "Training happens locally.",
+            "elaboration": "Federated learning keeps raw data on each user's device. Only aggregated updates are sent to the server."
+        },
+        {
+            "question": "Encryption during training primarily protects what aspect?",
+            "options": [
+                "Model weights from corruption",
+                "Communication channels carrying data",
+                "Inference latency",
+                "Optimization loss"
+            ],
+            "answer": 1,
+            "hint": "Secures data in transit.",
+            "elaboration": "Encryption secures the communication channels carrying data. This prevents snooping during distributed or federated training."
+        },
+        {
+            "question": "Membership inference attacks attempt to determine what?",
+            "options": [
+                "Parameter count",
+                "Whether a record was in the training set",
+                "GPU type",
+                "Learning rate"
+            ],
+            "answer": 1,
+            "hint": "Attackers guess which examples the model saw.",
+            "elaboration": "Membership inference tests if a record was in the training set. Success indicates potential privacy leakage."
+        },
+        {
+            "question": "What is one challenge of homomorphic encryption for neural networks?",
+            "options": [
+                "It lowers perplexity",
+                "Operations become computationally expensive",
+                "It requires GPUs",
+                "It reduces vocabulary"
+            ],
+            "answer": 1,
+            "hint": "Encrypted arithmetic is slow.",
+            "elaboration": "Homomorphic encryption is computationally expensive for neural nets. The overhead currently makes fully encrypted training impractical."
+        },
+        {
+            "question": "PATE (Private Aggregation of Teacher Ensembles) relies on what concept?",
+            "options": [
+                "Knowledge distillation with noise",
+                "Gradient descent",
+                "Token pruning",
+                "Data deduplication"
+            ],
+            "answer": 0,
+            "hint": "Student learns from an ensemble of teachers.",
+            "elaboration": "PATE relies on knowledge distillation with noise added. Teacher ensembles vote on labels, then noise ensures differential privacy."
+        }
+    ],
+    "ethics": [
+        {
+            "question": "Which term describes unintended harmful effects from model deployment?",
+            "options": [
+                "Beneficence",
+                "Alignment",
+                "Negative externalities",
+                "Sampling bias"
+            ],
+            "answer": 2,
+            "hint": "Economists use this term for side effects.",
+            "elaboration": "Negative externalities are unintended harmful effects of deployment. Examples include misinformation spread or job displacement."
+        },
+        {
+            "question": "Dataset curation is critical to reduce what ethical issue?",
+            "options": [
+                "Compute cost",
+                "Bias and offensive content",
+                "Token length",
+                "Algorithmic complexity"
+            ],
+            "answer": 1,
+            "hint": "It's about problematic examples in the data.",
+            "elaboration": "Dataset curation reduces bias and offensive content. Careful filtering helps prevent discriminatory or toxic model behavior."
+        },
+        {
+            "question": "Transparency in model reporting can be achieved with",
+            "options": [
+                "Model cards",
+                "Dropout",
+                "Quantization",
+                "Early stopping"
+            ],
+            "answer": 0,
+            "hint": "Think of documentation for models.",
+            "elaboration": "Model cards provide transparency in reporting. They document intended uses, limitations, and ethical considerations."
+        },
+        {
+            "question": "Why is undisclosed synthetic content problematic?",
+            "options": [
+                "It improves retrieval accuracy",
+                "It may mislead users about authenticity",
+                "It speeds up inference",
+                "It increases dataset size"
+            ],
+            "answer": 1,
+            "hint": "People might think it's written by a human.",
+            "elaboration": "Undisclosed synthetic content may mislead users about authenticity. Readers might believe a language model's text was human-written."
+        },
+        {
+            "question": "Fairness evaluations often compare metrics across what?",
+            "options": [
+                "GPU types",
+                "Demographic groups",
+                "Optimizer choices",
+                "Model layers"
+            ],
+            "answer": 1,
+            "hint": "Checking for disparities between populations.",
+            "elaboration": "Fairness evaluations compare metrics across demographic groups. Disparities may reveal systemic bias requiring mitigation."
+        },
+        {
+            "question": "The precautionary principle suggests what approach to deployment?",
+            "options": [
+                "Release widely first",
+                "Delay deployment until risks are understood",
+                "Ignore alignment",
+                "Open-source everything"
+            ],
+            "answer": 1,
+            "hint": "Better safe than sorry.",
+            "elaboration": "The precautionary principle suggests delaying deployment until risks are known. It emphasizes caution when potential harms are unclear."
+        },
+        {
+            "question": "Content moderation using another language model is an example of",
+            "options": [
+                "Hierarchical modeling",
+                "Automated oversight",
+                "Mixture of experts",
+                "Data augmentation"
+            ],
+            "answer": 1,
+            "hint": "A model is watching another model.",
+            "elaboration": "Using another language model for moderation is automated oversight. The supervising model flags or filters problematic outputs."
+        },
+        {
+            "question": "Why is red teaming important ethically?",
+            "options": [
+                "It lowers compute cost",
+                "It identifies potential misuse scenarios",
+                "It speeds up training",
+                "It reduces dataset size"
+            ],
+            "answer": 1,
+            "hint": "Simulating adversarial users.",
+            "elaboration": "Red teaming finds potential misuse scenarios. Simulated adversaries expose ways the system could be exploited."
+        },
+        {
+            "question": "Which principle encourages developers to explain model limitations clearly?",
+            "options": [
+                "Beneficence",
+                "Autonomy",
+                "Transparency",
+                "Justice"
+            ],
+            "answer": 2,
+            "hint": "Openness about weaknesses.",
+            "elaboration": "Transparency encourages explaining model limitations clearly. Openly disclosing weaknesses builds user trust."
+        },
+        {
+            "question": "Limiting data from certain groups can lead to what ethical issue?",
+            "options": [
+                "Underrepresentation bias",
+                "Better fairness",
+                "Faster evaluation",
+                "Improved alignment"
+            ],
+            "answer": 0,
+            "hint": "Some groups may be missing in training data.",
+            "elaboration": "Limiting data from certain groups can cause underrepresentation bias. This may lead to poorer performance for those populations."
+        }
+    ],
+    "interpretability": [
+        {
+            "question": "Attention visualization aims to interpret which model component?",
+            "options": [
+                "Embedding layer",
+                "Optimizer",
+                "Attention weights",
+                "Output logits"
+            ],
+            "answer": 2,
+            "hint": "Think of the matrices showing token influence.",
+            "elaboration": "Attention visualization focuses on the attention weights. Highlighting which tokens attend to others reveals patterns of influence."
+        },
+        {
+            "question": "Feature attribution methods like Integrated Gradients output what?",
+            "options": [
+                "Probability distributions",
+                "Per-token importance scores",
+                "Hidden states",
+                "Loss values"
+            ],
+            "answer": 1,
+            "hint": "They assign a relevance value to each input.",
+            "elaboration": "Integrated Gradients yields per-token importance scores. It integrates gradients along a path from a baseline input."
+        },
+        {
+            "question": "The term 'superposition' in interpretability refers to what?",
+            "options": [
+                "Multiple features encoded along the same direction",
+                "Quantum effects in computation",
+                "Dropout noise",
+                "Attention head pruning"
+            ],
+            "answer": 0,
+            "hint": "Neurons may represent more than one concept.",
+            "elaboration": "Superposition means multiple features share the same direction. A single neuron may activate for several unrelated concepts."
+        },
+        {
+            "question": "A circuit in the context of Transformer interpretability is",
+            "options": [
+                "A GPU kernel",
+                "A small group of weights implementing a specific function",
+                "A voltage regulator",
+                "An attention mask"
+            ],
+            "answer": 1,
+            "hint": "Pieces of the network that compute a subtask.",
+            "elaboration": "A circuit is a small group of weights implementing a function. Researchers identify subgraphs that perform specific computations."
+        },
+        {
+            "question": "Activation patching is used to",
+            "options": [
+                "Repair model weights",
+                "Test the effect of specific activations on outputs",
+                "Quantize the model",
+                "Compute gradients faster"
+            ],
+            "answer": 1,
+            "hint": "It swaps activations to see their effect.",
+            "elaboration": "Activation patching tests how specific activations change results. By replacing parts of the activation, we see which ones matter."
+        },
+        {
+            "question": "Which technique attempts to discover neurons correlated with specific concepts?",
+            "options": [
+                "Dropout",
+                "Automatic feature labeling",
+                "Synthetic gradient training",
+                "Beam search"
+            ],
+            "answer": 1,
+            "hint": "It names individual neuron behaviors.",
+            "elaboration": "Automatic feature labeling tries to find neurons linked to concepts. The labels help map internal representations to human meanings."
+        },
+        {
+            "question": "Mechanistic interpretability often examines models at what level?",
+            "options": [
+                "Dataset statistics",
+                "Weight and activation patterns",
+                "Hardware microarchitecture",
+                "User interface"
+            ],
+            "answer": 1,
+            "hint": "Looking at weights and activations directly.",
+            "elaboration": "Mechanistic interpretability studies weight and activation patterns. The goal is to understand how computations arise from these numbers."
+        },
+        {
+            "question": "Why are sparse autoencoders useful for interpretability?",
+            "options": [
+                "They reduce training time",
+                "They encourage disentangled representations",
+                "They increase dataset size",
+                "They compute gradients implicitly"
+            ],
+            "answer": 1,
+            "hint": "Sparse activations isolate distinct features.",
+            "elaboration": "Sparse autoencoders promote disentangled representations. Each neuron ideally corresponds to one interpretable feature."
+        },
+        {
+            "question": "Which method measures how much a model forgets when a feature is ablated?",
+            "options": [
+                "Causal scrubbing",
+                "Perplexity drop",
+                "Cross-entropy loss",
+                "Gradient ascent"
+            ],
+            "answer": 0,
+            "hint": "It removes parts to measure importance.",
+            "elaboration": "Causal scrubbing measures forgetting when features are ablated. Removing features and observing performance reveals causal roles."
+        },
+        {
+            "question": "Path patching in Transformer circuits helps identify",
+            "options": [
+                "The GPU kernel used",
+                "Which intermediate paths contribute to behavior",
+                "Optimal hyperparameters",
+                "Scaling law exponents"
+            ],
+            "answer": 1,
+            "hint": "Tracing which paths affect the output.",
+            "elaboration": "Path patching identifies which intermediate paths drive behavior. It swaps or zeroes connections to trace information flow."
+        }
+    ],
+    "mixture of experts": [
+        {
+            "question": "In a MoE layer, the gating network outputs what?",
+            "options": [
+                "Expert weights",
+                "Token embeddings",
+                "Gradient momentum",
+                "Batch norms"
+            ],
+            "answer": 0,
+            "hint": "It decides which experts to activate.",
+            "elaboration": "The gating network outputs expert weights. These weights determine which experts process each token."
+        },
+        {
+            "question": "Top-k routing selects how many experts per token?",
+            "options": [
+                "All experts",
+                "A fixed number like 2",
+                "A different number each step",
+                "Zero experts"
+            ],
+            "answer": 1,
+            "hint": "Usually only a few experts get used.",
+            "elaboration": "Top-k routing sends each token to a fixed small number of experts. This keeps computation manageable while using specialization."
+        },
+        {
+            "question": "One challenge of MoE models during training is",
+            "options": [
+                "Increased parameter sharing",
+                "Load imbalance across experts",
+                "Smaller model size",
+                "No need for parallelism"
+            ],
+            "answer": 1,
+            "hint": "Some experts may get far more tokens than others.",
+            "elaboration": "Load imbalance across experts is a key challenge in MoE training. Some experts might be overused while others remain idle."
+        },
+        {
+            "question": "Switch Transformers differ from standard MoE by using",
+            "options": [
+                "Expert parallelism",
+                "One expert per token",
+                "Larger vocabularies",
+                "Reinforcement learning"
+            ],
+            "answer": 1,
+            "hint": "They 'switch' to a single route.",
+            "elaboration": "Switch Transformers route each token to only one expert. This reduces compute compared to using multiple experts simultaneously."
+        },
+        {
+            "question": "Routing decisions are typically based on",
+            "options": [
+                "Random choice",
+                "Similarity of token embeddings",
+                "Model depth",
+                "Sequence length"
+            ],
+            "answer": 1,
+            "hint": "The gate looks at the token representation.",
+            "elaboration": "Routing decisions use similarity of token embeddings. Tokens are dispatched to the experts best matched to their features."
+        },
+        {
+            "question": "During inference, MoE models can reduce compute by",
+            "options": [
+                "Disabling the gating network",
+                "Activating only a subset of experts",
+                "Quantizing to float64",
+                "Repeating tokens"
+            ],
+            "answer": 1,
+            "hint": "Skip the unused experts.",
+            "elaboration": "During inference, only a subset of experts are activated. The rest remain idle, saving FLOPs for easier inputs."
+        },
+        {
+            "question": "Expert dropout is used to",
+            "options": [
+                "Increase memory usage",
+                "Regularize the gating network",
+                "Optimize beam search",
+                "Improve tokenization"
+            ],
+            "answer": 1,
+            "hint": "Randomly disable some experts during training.",
+            "elaboration": "Expert dropout regularizes the gating network. Randomly skipping experts during training prevents over-reliance on any single one."
+        },
+        {
+            "question": "Load balancing loss encourages what?",
+            "options": [
+                "All tokens routed to the same expert",
+                "Even distribution of tokens across experts",
+                "Dropping half of the experts",
+                "Increasing batch size"
+            ],
+            "answer": 1,
+            "hint": "It's a penalty for skewed routing.",
+            "elaboration": "Load balancing loss encourages an even distribution of tokens. This prevents a small set of experts from dominating usage."
+        },
+        {
+            "question": "What does 'token dropping' refer to in some MoE works?",
+            "options": [
+                "Removing tokens with low gating scores",
+                "Deleting experts",
+                "Reducing sequence length",
+                "Applying dropout"
+            ],
+            "answer": 0,
+            "hint": "Low-importance tokens may be skipped.",
+            "elaboration": "Token dropping removes tokens with low gating scores. Less important tokens can be skipped to save compute."
+        },
+        {
+            "question": "Experts in a MoE layer typically share",
+            "options": [
+                "No parameters",
+                "The feed-forward network architecture but not weights",
+                "Embedding tables",
+                "Optimizer states"
+            ],
+            "answer": 1,
+            "hint": "Structure is the same but weights differ.",
+            "elaboration": "Experts share architecture but maintain separate weights. Each expert learns a specialized function despite identical structure."
+        }
+    ],
+    "pytorch resource accounting": [
+        {
+            "question": "torch.cuda.memory_allocated() reports",
+            "options": [
+                "Total GPU memory",
+                "Memory managed by PyTorch allocator",
+                "CPU RAM usage",
+                "Cache hit rate"
+            ],
+            "answer": 1,
+            "hint": "It doesn't include unused cached memory.",
+            "elaboration": "torch.cuda.memory_allocated() reports memory managed by PyTorch's allocator. It excludes memory held by other libraries or the driver."
+        },
+        {
+            "question": "Which PyTorch feature frees unused GPU memory without leaving the program?",
+            "options": [
+                "torch.save",
+                "torch.cuda.empty_cache",
+                "torch.distributed.barrier",
+                "torch.jit"
+            ],
+            "answer": 1,
+            "hint": "Useful after large tensors are deleted.",
+            "elaboration": "torch.cuda.empty_cache frees unused GPU memory without exiting. This can help avoid out-of-memory errors when tensors are deleted."
+        },
+        {
+            "question": "During mixed precision training, which component consumes extra memory?",
+            "options": [
+                "Grad scaler",
+                "Dataloader",
+                "Optimizer step",
+                "Dropout layer"
+            ],
+            "answer": 0,
+            "hint": "It keeps track of dynamic loss scaling.",
+            "elaboration": "The grad scaler consumes extra memory in mixed precision training. It stores scaling factors to prevent underflow when using float16."
+        },
+        {
+            "question": "torch.no_grad() is helpful during evaluation because",
+            "options": [
+                "It saves GPU memory by not storing gradients",
+                "It speeds up tokenization",
+                "It increases accuracy",
+                "It uses bfloat16"
+            ],
+            "answer": 0,
+            "hint": "Gradients aren't needed for inference.",
+            "elaboration": "torch.no_grad() saves memory by not storing gradients during eval. It also slightly speeds up inference since no backward pass is needed."
+        },
+        {
+            "question": "How can you track peak memory usage over time?",
+            "options": [
+                "torch.cuda.max_memory_allocated",
+                "torch.set_default_dtype",
+                "torch.compile",
+                "torch.utils.data"
+            ],
+            "answer": 0,
+            "hint": "There is an API returning the high watermark.",
+            "elaboration": "torch.cuda.max_memory_allocated tracks peak memory usage. Monitoring this helps diagnose leaks or inefficiencies."
+        },
+        {
+            "question": "What does setting torch.backends.cudnn.benchmark=True do?",
+            "options": [
+                "Reduces memory",
+                "Finds optimal convolution algorithms",
+                "Disables kernels",
+                "Forces deterministic ops"
+            ],
+            "answer": 1,
+            "hint": "It times kernels to find the fastest convolution.",
+            "elaboration": "torch.backends.cudnn.benchmark=True finds optimal convolution algorithms. It times different kernels and caches the fastest choice."
+        },
+        {
+            "question": "In distributed data parallel, gradient buckets are used for",
+            "options": [
+                "Fusing gradients before all-reduce",
+                "Saving model checkpoints",
+                "Computing logits",
+                "Generating text"
+            ],
+            "answer": 0,
+            "hint": "They reduce communication overhead.",
+            "elaboration": "Gradient buckets fuse gradients before all-reduce in DDP. This reduces the number of communication operations."
+        },
+        {
+            "question": "Why might you use torch.cuda.memory_reserved()?",
+            "options": [
+                "To allocate CPU buffers",
+                "To see total memory including cache",
+                "To perform quantization",
+                "To enable dropout"
+            ],
+            "answer": 1,
+            "hint": "Shows memory the allocator reserved from the driver.",
+            "elaboration": "torch.cuda.memory_reserved() shows total reserved memory including cache. It can reveal fragmentation or overhead beyond active tensors."
+        },
+        {
+            "question": "Profiling with torch.autograd.profiler is useful for",
+            "options": [
+                "Counting tokens",
+                "Identifying time and memory hotspots",
+                "Downloading datasets",
+                "Computing scaling laws"
+            ],
+            "answer": 1,
+            "hint": "It records operation traces.",
+            "elaboration": "torch.autograd.profiler helps identify time and memory hotspots. It records detailed traces of operations for optimization."
+        },
+        {
+            "question": "NVTX ranges inserted via torch.cuda.nvtx.range are primarily for",
+            "options": [
+                "Colorful traces in profiling tools",
+                "Batch size scaling",
+                "Error handling",
+                "Input normalization"
+            ],
+            "answer": 0,
+            "hint": "They annotate events on the timeline.",
+            "elaboration": "NVTX ranges create colorful traces for profiling tools. They mark regions of code to visualize in tools like Nsight or Chrome tracing."
+        }
+    ],
+    "evaluation": [
+        {
+            "question": "Perplexity measures what aspect of a language model?",
+            "options": [
+                "Inference latency",
+                "Likelihood of test data",
+                "Number of parameters",
+                "Token length"
+            ],
+            "answer": 1,
+            "hint": "Lower is better for predicting the sample.",
+            "elaboration": "Perplexity measures the likelihood of test data under the model. Lower perplexity indicates better language modeling ability."
+        },
+        {
+            "question": "BLEU and ROUGE are metrics primarily for",
+            "options": [
+                "Machine translation and summarization quality",
+                "GPU efficiency",
+                "Privacy protection",
+                "Scaling laws"
+            ],
+            "answer": 0,
+            "hint": "They compare generated text to references.",
+            "elaboration": "BLEU and ROUGE evaluate machine translation and summarization quality. They compare n-gram overlap between predictions and references."
+        },
+        {
+            "question": "The HELM benchmark aims to",
+            "options": [
+                "Provide holistic evaluation across many scenarios",
+                "Optimize batch size",
+                "Reduce compute",
+                "Measure power usage"
+            ],
+            "answer": 0,
+            "hint": "It's a broad benchmark, not just one task.",
+            "elaboration": "The HELM benchmark provides holistic evaluation across scenarios. It aggregates many tasks to give a broader view of capability."
+        },
+        {
+            "question": "Why are human evaluations still important?",
+            "options": [
+                "Automated metrics perfectly capture quality",
+                "They can judge nuances that metrics miss",
+                "They reduce latency",
+                "They eliminate bias"
+            ],
+            "answer": 1,
+            "hint": "Automated scores don't capture everything.",
+            "elaboration": "Humans judge nuances that metrics miss. Subjective qualities like coherence or style often require human raters."
+        },
+        {
+            "question": "Zero-shot performance refers to",
+            "options": [
+                "Training without data",
+                "Evaluating on tasks the model was not fine-tuned for",
+                "Using zero parameters",
+                "A loss of zero"
+            ],
+            "answer": 1,
+            "hint": "Testing generalization without specific training.",
+            "elaboration": "Zero-shot performance evaluates tasks the model wasn't fine-tuned for. Strong zero-shot results show good generalization."
+        },
+        {
+            "question": "Model calibration measures",
+            "options": [
+                "How accurately probabilities reflect true outcomes",
+                "GPU temperature",
+                "Inference throughput",
+                "Privacy risk"
+            ],
+            "answer": 0,
+            "hint": "Do confidence scores match reality?",
+            "elaboration": "Model calibration checks that probabilities match true outcomes. Well-calibrated models assign high confidence only when correct."
+        },
+        {
+            "question": "Benchmarks like MMLU test what capability?",
+            "options": [
+                "Long-context retrieval",
+                "General knowledge and reasoning",
+                "Code generation only",
+                "Image synthesis"
+            ],
+            "answer": 1,
+            "hint": "They include many subject-area questions.",
+            "elaboration": "MMLU tests general knowledge and reasoning ability. It covers diverse subjects, from law to physics, to measure breadth."
+        },
+        {
+            "question": "Which metric is common for evaluating summarization?",
+            "options": [
+                "F1 score",
+                "ROUGE",
+                "WER",
+                "PPL"
+            ],
+            "answer": 1,
+            "hint": "It's based on recall of n-grams.",
+            "elaboration": "ROUGE is a common metric for summarization tasks. It computes overlap of n-grams between generated and reference summaries."
+        },
+        {
+            "question": "A/B testing in deployment allows developers to",
+            "options": [
+                "Increase token limit",
+                "Compare user engagement across model versions",
+                "Reduce parameters",
+                "Improve GPU utilization"
+            ],
+            "answer": 1,
+            "hint": "Run two options and see which users prefer.",
+            "elaboration": "A/B testing compares user engagement across model versions. Real-world interactions reveal which system performs better."
+        },
+        {
+            "question": "Toxicity and bias evaluations are examples of",
+            "options": [
+                "Safety-focused metrics",
+                "Scaling laws",
+                "Compression ratios",
+                "Training objectives"
+            ],
+            "answer": 0,
+            "hint": "They assess harmful content.",
+            "elaboration": "Toxicity and bias scores are safety-focused metrics. They measure harmful or unfair content in model outputs."
+        }
+    ],
+    "planning": [
+        {
+            "question": "What is the main role of a planner in an agent loop?",
+            "options": [
+                "Select the next action to take",
+                "Store intermediate observations",
+                "Manage sensor inputs",
+                "Assemble reward signals"
+            ],
+            "answer": 0,
+            "hint": "It decides what the agent should do next.",
+            "elaboration": "The planner chooses the next step or tool to invoke based on the current state and goal."
+        },
+        {
+            "question": "Chain of thought prompting is a form of",
+            "options": [
+                "Open ended reasoning plan",
+                "Weight initialization",
+                "Data augmentation",
+                "Gradient clipping"
+            ],
+            "answer": 0,
+            "hint": "It lists reasoning steps before giving an answer.",
+            "elaboration": "Chain of thought prompts encourage the model to lay out a plan of intermediate steps before the final answer."
+        },
+        {
+            "question": "Why keep a scratchpad during planning?",
+            "options": [
+                "To track intermediate reasoning steps",
+                "To reduce token count",
+                "To force deterministic sampling",
+                "To encrypt prompts"
+            ],
+            "answer": 0,
+            "hint": "It records notes for the next step.",
+            "elaboration": "A scratchpad stores partial thoughts and observations so the agent can refer back during planning."
+        },
+        {
+            "question": "Replanning allows an agent to",
+            "options": [
+                "Adapt to new observations",
+                "Ignore tool outputs",
+                "Increase model size",
+                "Disable safety checks"
+            ],
+            "answer": 0,
+            "hint": "Plans may change when new information arrives.",
+            "elaboration": "Replanning updates the action sequence based on new observations or feedback, improving robustness."
+        },
+        {
+            "question": "A cost function in planning typically",
+            "options": [
+                "Evaluates the desirability of actions",
+                "Compiles the neural network",
+                "Generates training data",
+                "Controls GPU temperature"
+            ],
+            "answer": 0,
+            "hint": "It scores how good a plan is.",
+            "elaboration": "The cost function assigns a value to each possible action or state so the planner can choose the lowest-cost path."
+        },
+        {
+            "question": "Which algorithm is famous for path planning in robotics?",
+            "options": [
+                "A* search",
+                "Stochastic gradient descent",
+                "Backpropagation",
+                "Beam search"
+            ],
+            "answer": 0,
+            "hint": "It expands nodes with the lowest estimated cost first.",
+            "elaboration": "A* search explores paths toward a goal while considering both distance traveled and estimated remaining cost."
+        },
+        {
+            "question": "Hierarchical planning breaks goals into",
+            "options": [
+                "Subtasks that can be solved separately",
+                "Device placement strategies",
+                "Embedding lookup tables",
+                "Access control policies"
+            ],
+            "answer": 0,
+            "hint": "Think of high level and low level objectives.",
+            "elaboration": "Hierarchical planning decomposes a complex goal into smaller subgoals that can be tackled one at a time."
+        },
+        {
+            "question": "The observe-think-act loop describes",
+            "options": [
+                "Deliberative agent operation",
+                "Reactive control loops",
+                "Policy gradient updates",
+                "Evolutionary search iterations"
+            ],
+            "answer": 0,
+            "hint": "It is how agents interact with environments repeatedly.",
+            "elaboration": "Agents repeatedly observe the state, think or plan, and then act before looping again."
+        },
+        {
+            "question": "Tree search methods expand nodes representing",
+            "options": [
+                "Possible future action sequences",
+                "Hyperparameter settings",
+                "Network layer weights",
+                "Training batch orders"
+            ],
+            "answer": 0,
+            "hint": "Each branch is a different hypothetical future.",
+            "elaboration": "Tree search enumerates possible action sequences, exploring branches to find a good plan."
+        },
+        {
+            "question": "Model-based planning differs from model-free methods by",
+            "options": [
+                "Using a predictive world model",
+                "Pure policy gradient updates",
+                "Logging transitions to disk",
+                "Fixed action scripts"
+            ],
+            "answer": 0,
+            "hint": "It simulates the environment before acting.",
+            "elaboration": "Model-based planners use an internal model of the environment to simulate outcomes and choose actions accordingly."
+        }
+    ],
+    "reasoning": [
+        {
+            "question": "Chain-of-thought prompting helps with",
+            "options": [
+                "Complex reasoning problems",
+                "Simple recall tasks",
+                "Token classification",
+                "Embedding lookup speed"
+            ],
+            "answer": 0,
+            "hint": "It encourages step-by-step solutions.",
+            "elaboration": "By generating intermediate reasoning steps, chain-of-thought improves performance on logic and math tasks."
+        },
+        {
+            "question": "Self-consistency decoding selects",
+            "options": [
+                "The most common final answer from several reasoning paths",
+                "The fastest GPU kernel",
+                "The longest prompt",
+                "The random seed"
+            ],
+            "answer": 0,
+            "hint": "Multiple reasoning traces are sampled.",
+            "elaboration": "Self-consistency samples several reasoning chains and picks the answer that appears most often."
+        },
+        {
+            "question": "Why do reasoning tasks benefit from larger context windows?",
+            "options": [
+                "They may require many intermediate steps",
+                "They train fewer parameters",
+                "They rely on byte pair merges",
+                "They reduce VRAM usage"
+            ],
+            "answer": 0,
+            "hint": "More room allows more thought.",
+            "elaboration": "Reasoning chains can be long. Bigger context windows let the model keep track of all steps."
+        },
+        {
+            "question": "Which benchmark targets multi-step reasoning across diverse subjects?",
+            "options": [
+                "MMLU",
+                "MNIST",
+                "ImageNet",
+                "SQuAD"
+            ],
+            "answer": 0,
+            "hint": "It includes law, physics, history and more.",
+            "elaboration": "MMLU evaluates reasoning and knowledge across many domains using multiple-choice questions."
+        },
+        {
+            "question": "Tool use can assist reasoning by",
+            "options": [
+                "Allowing external calculations",
+                "Reducing sequence length",
+                "Disabling tokens",
+                "Compressing weights"
+            ],
+            "answer": 0,
+            "hint": "Think of calling a calculator or database.",
+            "elaboration": "Agents may delegate parts of reasoning to tools like solvers or search engines to enhance correctness."
+        },
+        {
+            "question": "Deliberate reasoning often trades off",
+            "options": [
+                "More compute for higher accuracy",
+                "Lower learning rate for faster convergence",
+                "Less memory for longer prompts",
+                "More layers for less data"
+            ],
+            "answer": 0,
+            "hint": "Slow thinking can perform better.",
+            "elaboration": "Taking more compute to explore reasoning steps carefully can yield more accurate results."
+        },
+        {
+            "question": "The ReAct pattern combines reasoning with",
+            "options": [
+                "Tool actions",
+                "Weight decay",
+                "Batch normalization",
+                "Loss scaling"
+            ],
+            "answer": 0,
+            "hint": "It interleaves thoughts with API calls.",
+            "elaboration": "ReAct agents write down reasoning then choose an action such as a tool invocation, iteratively."
+        },
+        {
+            "question": "A common failure in reasoning is",
+            "options": [
+                "Hallucinating unsupported steps",
+                "Using too many GPUs",
+                "Compressing the tokenizer",
+                "Faster convergence"
+            ],
+            "answer": 0,
+            "hint": "The logic chain may not be valid.",
+            "elaboration": "Models sometimes generate convincing but incorrect reasoning, including steps that do not actually follow."
+        },
+        {
+            "question": "Providing worked examples in the prompt is called",
+            "options": [
+                "Few-shot prompting",
+                "Cross entropy training",
+                "Quantization aware training",
+                "Weight tying"
+            ],
+            "answer": 0,
+            "hint": "Show the model how to solve it first.",
+            "elaboration": "Few-shot examples demonstrate the reasoning pattern desired, improving performance on similar tasks."
+        },
+        {
+            "question": "Reasoning can improve when models",
+            "options": [
+                "Iterate over multiple attempts",
+                "Freeze embeddings early",
+                "Lower batch size dramatically",
+                "Ignore intermediate outputs"
+            ],
+            "answer": 0,
+            "hint": "Try more than one path to the answer.",
+            "elaboration": "Sampling several reasoning paths and selecting among them or refining iteratively often yields better answers."
+        }
+    ],
+    "long-context": [
+        {
+            "question": "Which attention variant uses a sliding window to handle long sequences?",
+            "options": [
+                "Longformer",
+                "Dropout",
+                "BatchNorm",
+                "ReLU"
+            ],
+            "answer": 0,
+            "hint": "It restricts attention to local neighborhoods.",
+            "elaboration": "Longformer attention scales linearly by attending within a moving window plus a few global tokens."
+        },
+        {
+            "question": "Memory key/value caching across segments enables",
+            "options": [
+                "Extending context beyond the model's window",
+                "Faster matrix inversion",
+                "Smaller vocabulary",
+                "Zero-shot translation"
+            ],
+            "answer": 0,
+            "hint": "It stitches together multiple chunks.",
+            "elaboration": "By caching attention states and reusing them, a model can continue generation over a longer overall context."
+        },
+        {
+            "question": "Rotary position embeddings were introduced to",
+            "options": [
+                "Better extrapolate to longer sequences",
+                "Train in half precision",
+                "Reduce dataset size",
+                "Compute BLEU scores"
+            ],
+            "answer": 0,
+            "hint": "They rotate query and key vectors.",
+            "elaboration": "RoPE encodes relative position information smoothly so transformers generalize to contexts longer than seen in training."
+        },
+        {
+            "question": "Which method breaks long texts into overlapping chunks for retrieval?",
+            "options": [
+                "Sliding window chunking",
+                "Quantization",
+                "Backpropagation",
+                "Token pruning"
+            ],
+            "answer": 0,
+            "hint": "It ensures context continuity across chunks.",
+            "elaboration": "Overlapping chunking provides context overlap so answers requiring information across boundaries can be retrieved."
+        },
+        {
+            "question": "Why are sparse attention patterns useful for long context?",
+            "options": [
+                "They reduce quadratic memory growth",
+                "They increase parameter count",
+                "They normalize activations",
+                "They enforce determinism"
+            ],
+            "answer": 0,
+            "hint": "Full attention is expensive at thousands of tokens.",
+            "elaboration": "Sparse patterns like block or local attention cut computation and memory requirements for long sequences."
+        },
+        {
+            "question": "Segment-level recurrence in transformers allows",
+            "options": [
+                "Reuse of past hidden states",
+                "Faster convolution",
+                "Immediate tokenization",
+                "Better gradient clipping"
+            ],
+            "answer": 0,
+            "hint": "Think Transformer-XL style memory.",
+            "elaboration": "Models like Transformer-XL cache and reuse hidden states from previous segments to achieve longer effective context."
+        },
+        {
+            "question": "What challenge arises when training with very long sequences?",
+            "options": [
+                "Memory usage grows quickly",
+                "Tokens cannot be embedded",
+                "Loss functions fail",
+                "Backpropagation no longer works"
+            ],
+            "answer": 0,
+            "hint": "Attention memory requirements scale with sequence length.",
+            "elaboration": "Training on long sequences can exhaust GPU memory because attention matrices grow with the square of length."
+        },
+        {
+            "question": "Retrieval augmented generation can assist long context tasks by",
+            "options": [
+                "Fetching only relevant documents",
+                "Doubling parameter counts",
+                "Skipping tokenization",
+                "Guaranteeing perfect accuracy"
+            ],
+            "answer": 0,
+            "hint": "Bring in only what you need.",
+            "elaboration": "Retrieval components select a small set of relevant passages so the model does not need the entire corpus in context."
+        },
+        {
+            "question": "Compression of past tokens into summaries is called",
+            "options": [
+                "Context distillation",
+                "Weight tying",
+                "Layer normalization",
+                "Activation checkpointing"
+            ],
+            "answer": 0,
+            "hint": "Summarize old history into fewer tokens.",
+            "elaboration": "Some long-context methods periodically summarize or distill earlier tokens into shorter representations."
+        },
+        {
+            "question": "When context length exceeds training distribution, models may",
+            "options": [
+                "Generalize poorly without special techniques",
+                "Automatically scale linearly",
+                "Avoid overfitting entirely",
+                "Converge in one step"
+            ],
+            "answer": 0,
+            "hint": "Extrapolation can be hard.",
+            "elaboration": "Models trained on short contexts often struggle when asked to handle much longer sequences unless specifically designed for it."
+        }
+    ],
+    "data valuation": [
+        {
+            "question": "Data valuation seeks to measure",
+            "options": [
+                "The contribution of each example",
+                "GPU throughput",
+                "Number of attention heads",
+                "Model inference latency"
+            ],
+            "answer": 0,
+            "hint": "Which examples help most?",
+            "elaboration": "Data valuation methods try to quantify how much each training instance affects the final model."
+        },
+        {
+            "question": "Shapley values are sometimes used for",
+            "options": [
+                "Attributing value to data points",
+                "Initializing weights",
+                "Pruning neurons",
+                "Scheduling batches"
+            ],
+            "answer": 0,
+            "hint": "They come from cooperative game theory.",
+            "elaboration": "Shapley values fairly assign credit to each data point by considering all possible subsets."
+        },
+        {
+            "question": "A data point with negative value might",
+            "options": [
+                "Hurt model performance",
+                "Train faster",
+                "Increase GPU memory",
+                "Improve tokenization"
+            ],
+            "answer": 0,
+            "hint": "Not all data helps the objective.",
+            "elaboration": "If an example introduces noise or bias, its contribution could be negative when measuring data value."
+        },
+        {
+            "question": "Importance sampling during training weights examples based on",
+            "options": [
+                "How informative they are",
+                "Their file size",
+                "Sequence length only",
+                "GPU type"
+            ],
+            "answer": 0,
+            "hint": "Focus on high-value examples more often.",
+            "elaboration": "By estimating example value, importance sampling chooses which data to train on more frequently."
+        },
+        {
+            "question": "Filtering out low-value data can",
+            "options": [
+                "Improve model quality",
+                "Reduce parameter count",
+                "Increase inference cost",
+                "Guarantee perfect fairness"
+            ],
+            "answer": 0,
+            "hint": "Cleaning datasets matters.",
+            "elaboration": "Removing or down-weighting unhelpful examples often leads to better generalization."
+        },
+        {
+            "question": "Gradient-based influence functions estimate",
+            "options": [
+                "How training on one example changes the loss",
+                "The speed of matrix multiply",
+                "The dropout rate",
+                "The optimal learning rate"
+            ],
+            "answer": 0,
+            "hint": "Perturb a single example and observe.",
+            "elaboration": "Influence functions approximate the effect of upweighting or removing an example on the trained model."
+        },
+        {
+            "question": "Active learning selects new data to label based on",
+            "options": [
+                "Expected information gain",
+                "GPU brand",
+                "Tokenization scheme",
+                "Batch size"
+            ],
+            "answer": 0,
+            "hint": "Choose the most informative samples next.",
+            "elaboration": "Active learning strategies query labels for data points that would most improve the model if added."
+        },
+        {
+            "question": "One challenge of data valuation is",
+            "options": [
+                "High computational cost",
+                "Too few tokens",
+                "Lack of gradient descent",
+                "Oversized context windows"
+            ],
+            "answer": 0,
+            "hint": "Measuring contribution can be expensive.",
+            "elaboration": "Accurately estimating the value of each example often requires many retraining runs or approximations."
+        },
+        {
+            "question": "Curriculum learning can be viewed as",
+            "options": [
+                "Scheduling data by value over time",
+                "Removing token embeddings",
+                "Avoiding dropout",
+                "Quantizing weights"
+            ],
+            "answer": 0,
+            "hint": "Easy examples first, harder later.",
+            "elaboration": "Curriculum strategies order training data so that more valuable or simpler examples come earlier."
+        },
+        {
+            "question": "Data valuation techniques can help with",
+            "options": [
+                "Detecting mislabeled or harmful examples",
+                "Increasing sequence length",
+                "Improving GPU clock speed",
+                "Measuring power draw"
+            ],
+            "answer": 0,
+            "hint": "They highlight problematic data points.",
+            "elaboration": "By scoring individual examples, valuation methods can identify mislabeled or low-quality data for removal."
+        }
+    ],
+    "learning rates": [
+        {
+            "question": "The learning rate primarily controls",
+            "options": [
+                "Step size of gradient updates",
+                "Model inference speed",
+                "Tokenization quality",
+                "Batch size"
+            ],
+            "answer": 0,
+            "hint": "It scales the gradient before updating weights.",
+            "elaboration": "A higher learning rate means larger parameter updates per step, while a lower rate yields more gradual changes."
+        },
+        {
+            "question": "Warmup schedules start with",
+            "options": [
+                "A smaller learning rate that increases",
+                "Random token order",
+                "Instant convergence",
+                "No optimizer state"
+            ],
+            "answer": 0,
+            "hint": "It ramps up at the beginning of training.",
+            "elaboration": "Warmup helps stabilize early training by slowly increasing the learning rate from a small initial value."
+        },
+        {
+            "question": "Too high a learning rate can cause",
+            "options": [
+                "Divergence or unstable training",
+                "Lower memory usage",
+                "Faster tokenizer",
+                "Smaller batch norms"
+            ],
+            "answer": 0,
+            "hint": "Loss may explode.",
+            "elaboration": "If updates are too large, the optimizer may overshoot minima and the training loss can diverge."
+        },
+        {
+            "question": "Which optimizer adapts the learning rate for each parameter?",
+            "options": [
+                "Adam",
+                "Nesterov momentum",
+                "Plain SGD",
+                "Adagrad"
+            ],
+            "answer": 0,
+            "hint": "It uses moving averages of gradients and squared gradients.",
+            "elaboration": "Adam computes separate adaptive learning rates for each weight based on past gradients."
+        },
+        {
+            "question": "Learning rate decay typically",
+            "options": [
+                "Reduces the rate as training progresses",
+                "Increases model depth",
+                "Changes tokenization",
+                "Adds more GPUs"
+            ],
+            "answer": 0,
+            "hint": "Slow down to fine tune weights.",
+            "elaboration": "Decaying the learning rate over time allows smaller steps near convergence for better final accuracy."
+        },
+        {
+            "question": "Cyclical learning rate policies",
+            "options": [
+                "Periodically vary the learning rate up and down",
+                "Keep it constant",
+                "Ignore gradient magnitude",
+                "Disable momentum"
+            ],
+            "answer": 0,
+            "hint": "Think of waves in the learning rate.",
+            "elaboration": "Cyclical schedules repeatedly increase and decrease the learning rate to potentially escape shallow minima."
+        },
+        {
+            "question": "The optimal learning rate often depends on",
+            "options": [
+                "Batch size and optimizer",
+                "HTML layout",
+                "Text encoding",
+                "Version control"
+            ],
+            "answer": 0,
+            "hint": "Bigger batches usually allow larger steps.",
+            "elaboration": "Choosing a learning rate takes into account factors like batch size, optimizer type, and desired convergence speed."
+        },
+        {
+            "question": "Gradient noise scale can guide",
+            "options": [
+                "Learning rate and batch size choices",
+                "Token embedding dimensions",
+                "Choice of GPU brand",
+                "Attention head count"
+            ],
+            "answer": 0,
+            "hint": "It measures how noisy updates are.",
+            "elaboration": "The gradient noise scale quantifies how batch size affects gradient variance and can inform learning rate selection."
+        },
+        {
+            "question": "Learning rate finders search for",
+            "options": [
+                "A rate that yields the fastest loss decrease",
+                "The best tokenizer",
+                "The largest hidden dimension",
+                "The cheapest GPU"
+            ],
+            "answer": 0,
+            "hint": "They sweep across values to see which works best.",
+            "elaboration": "LR finders run short training sweeps across a range of rates and pick one where loss decreases smoothly."
+        },
+        {
+            "question": "Very small learning rates can",
+            "options": [
+                "Slow down convergence dramatically",
+                "Increase VRAM usage",
+                "Improve tokenization accuracy",
+                "Cause exploding gradients"
+            ],
+            "answer": 0,
+            "hint": "Updates become tiny.",
+            "elaboration": "If the learning rate is too low, training may take much longer to reach good performance."
+        }
+    ],
+    "tokenization": [
+        {
+            "question": "Byte pair encoding (BPE) works by",
+            "options": [
+                "Merging frequent pairs of symbols",
+                "Initializing weights",
+                "Sorting dataset files",
+                "Applying dropout"
+            ],
+            "answer": 0,
+            "hint": "It repeatedly joins the most common pairs.",
+            "elaboration": "BPE builds a vocabulary by iteratively merging the most frequent adjacent characters or bytes."
+        },
+        {
+            "question": "SentencePiece can operate directly on",
+            "options": [
+                "Raw text without pretokenization",
+                "GPU tensors",
+                "HTML pages",
+                "Graphical images"
+            ],
+            "answer": 0,
+            "hint": "No language-specific tokenizer needed first.",
+            "elaboration": "SentencePiece learns subword units from raw text, avoiding the need for prior tokenization or language rules."
+        },
+        {
+            "question": "A larger vocabulary size generally means",
+            "options": [
+                "Shorter sequences of tokens",
+                "Fewer model parameters",
+                "Lower memory usage",
+                "No subwords"
+            ],
+            "answer": 0,
+            "hint": "More words are captured as single tokens.",
+            "elaboration": "With more vocabulary tokens, text can be represented in fewer tokens on average, though embeddings grow."
+        },
+        {
+            "question": "Tokenization affects",
+            "options": [
+                "How the model sees text input",
+                "GPU clock speed",
+                "Color rendering",
+                "Kernel version"
+            ],
+            "answer": 0,
+            "hint": "It's the first step before encoding.",
+            "elaboration": "The choice of tokenization determines how words and characters are split into model inputs."
+        },
+        {
+            "question": "Detokenization refers to",
+            "options": [
+                "Converting tokens back to text",
+                "Removing dropout",
+                "Halting training",
+                "Resetting weights"
+            ],
+            "answer": 0,
+            "hint": "Reverse of the encoding step.",
+            "elaboration": "After generation, tokens are mapped back into human-readable text through the detokenization process."
+        },
+        {
+            "question": "Subword tokenization helps handle",
+            "options": [
+                "Rare or unseen words",
+                "More consistent capitalization",
+                "Precise whitespace removal",
+                "Fixed-length n-grams"
+            ],
+            "answer": 0,
+            "hint": "Break words into pieces.",
+            "elaboration": "By representing words as smaller units, subword methods can encode new or rare words not seen during training."
+        },
+        {
+            "question": "The BOS token stands for",
+            "options": [
+                "Beginning of sequence",
+                "Batch of samples",
+                "Binary optimized source",
+                "Base operating system"
+            ],
+            "answer": 0,
+            "hint": "It marks where text starts.",
+            "elaboration": "Special tokens like BOS and EOS delimit the start and end of sequences for the model."
+        },
+        {
+            "question": "Unigram language model tokenization chooses",
+            "options": [
+                "A probabilistic set of subwords",
+                "Only whole words",
+                "GPU-friendly binaries",
+                "Deterministic rounding"
+            ],
+            "answer": 0,
+            "hint": "It selects a vocabulary by likelihood.",
+            "elaboration": "The unigram model in SentencePiece picks subword units based on maximizing overall data likelihood."
+        },
+        {
+            "question": "When a tokenizer is poorly aligned with the data, models may",
+            "options": [
+                "Waste capacity modeling bad splits",
+                "Train faster automatically",
+                "Require no embeddings",
+                "Run at infinite speed"
+            ],
+            "answer": 0,
+            "hint": "Bad segmentation hurts efficiency.",
+            "elaboration": "Misaligned tokenization can produce awkward splits that the model wastes parameters on, reducing quality."
+        },
+        {
+            "question": "Tokenizer training often involves",
+            "options": [
+                "Building a vocabulary from representative text",
+                "Learning token embeddings",
+                "Estimating morphological rules",
+                "Compressing model checkpoints"
+            ],
+            "answer": 0,
+            "hint": "Collect text and find frequent patterns.",
+            "elaboration": "To create a tokenizer, a corpus is analyzed to learn which subwords or symbols should make up the vocabulary."
+        }
+    ]
+    ,
+    "attention mechanism": [
+        {
+            "question": "What does self-attention compute?",
+            "options": [
+                "Interactions within the same sequence",
+                "Context from a separate encoder",
+                "Positional encodings",
+                "Optimizer updates"
+            ],
+            "answer": 0,
+            "hint": "Tokens attend to each other.",
+            "elaboration": "Self-attention calculates interactions among tokens in one sequence, letting each position weigh all others."
+        },
+        {
+            "question": "Multi-head attention allows a model to",
+            "options": [
+                "Share GPU memory across processes",
+                "Attend to information from different subspaces",
+                "Sort sequences in parallel",
+                "Quantize weights automatically"
+            ],
+            "answer": 1,
+            "hint": "Different heads focus on different patterns.",
+            "elaboration": "Each head projects queries, keys, and values separately to capture diverse relationships."
+        },
+        {
+            "question": "Which matrix holds scores before softmax?",
+            "options": [
+                "Query",
+                "Key",
+                "Value",
+                "Compatibility (QK^T)"
+            ],
+            "answer": 3,
+            "hint": "It's the product of queries and keys.",
+            "elaboration": "Attention scores come from multiplying queries with keys before scaling and applying softmax."
+        },
+        {
+            "question": "Causal attention masks out",
+            "options": [
+                "The BOS token only",
+                "Future tokens",
+                "Padding tokens",
+                "All tokens equally"
+            ],
+            "answer": 1,
+            "hint": "It prevents peeking ahead.",
+            "elaboration": "Causal masks block connections to later positions so autoregressive generation works correctly."
+        },
+        {
+            "question": "Cross-attention is commonly used in",
+            "options": [
+                "Language modeling only",
+                "Image preprocessing",
+                "Encoder-decoder architectures",
+                "Dataset sharding"
+            ],
+            "answer": 2,
+            "hint": "Decoders look back at encoder outputs.",
+            "elaboration": "Cross-attention lets a decoder query encoded representations, such as in translation models."
+        },
+        {
+            "question": "Scaled dot-product attention divides by sqrt(d_k) to",
+            "options": [
+                "Reduce gradient noise",
+                "Normalize score magnitude",
+                "Add dropout",
+                "Remove bias terms"
+            ],
+            "answer": 1,
+            "hint": "Avoid very large dot products.",
+            "elaboration": "Dividing by the square root of the key dimension keeps scores in a reasonable range for stable gradients."
+        },
+        {
+            "question": "Relative positional encodings help with",
+            "options": [
+                "Loading pretrained weights",
+                "Tracking token offsets independent of length",
+                "Increasing batch size",
+                "Reducing dataset tokens"
+            ],
+            "answer": 0,
+            "hint": "Positions are specified as distances.",
+            "elaboration": "Relative encodings represent the distance between tokens so models generalize to new sequence lengths."
+        },
+        {
+            "question": "Attention weights sum to one across",
+            "options": [
+                "Keys for each query",
+                "Batches",
+                "Heads",
+                "Layers"
+            ],
+            "answer": 0,
+            "hint": "Each query gives a distribution over keys.",
+            "elaboration": "For a single query vector, the softmax weights over all keys add up to one."
+        },
+        {
+            "question": "Which variant restricts attention to a window around each token?",
+            "options": [
+                "Global attention",
+                "Masked multi-head",
+                "Local attention",
+                "Sparsemax"
+            ],
+            "answer": 2,
+            "hint": "Only neighbors matter.",
+            "elaboration": "Local attention reduces cost by limiting each query to a surrounding window of tokens."
+        },
+        {
+            "question": "In transformers, which component typically follows the attention block?",
+            "options": [
+                "Layer normalization",
+                "Feed-forward network",
+                "Convolution layer",
+                "Embedding table"
+            ],
+            "answer": 3,
+            "hint": "It mixes information per position after attention.",
+            "elaboration": "A position-wise feed-forward network comes after attention to further transform each token."
+        }
+    ],
+    "triton": [
+        {
+            "question": "Triton is primarily",
+            "options": [
+                "A debugging tool",
+                "A dataset platform",
+                "A language and compiler for efficient GPU kernels",
+                "A CPU scheduler"
+            ],
+            "answer": 2,
+            "hint": "It lets you program custom kernels easily.",
+            "elaboration": "Triton provides a Python-based language and compiler for writing optimized GPU kernels without raw CUDA."
+        },
+        {
+            "question": "Which company originally created Triton?",
+            "options": [
+                "Google",
+                "OpenAI",
+                "Meta",
+                "Intel"
+            ],
+            "answer": 1,
+            "hint": "It started as an open-source project from a major AI lab.",
+            "elaboration": "Triton was initially developed and released by OpenAI before wider adoption."
+        },
+        {
+            "question": "Triton kernels are authored in",
+            "options": [
+                "Python with special decorators",
+                "C#",
+                "CUDA assembly",
+                "Go"
+            ],
+            "answer": 0,
+            "hint": "You write kernels in a restricted Python dialect.",
+            "elaboration": "Kernel functions are defined in Python and compiled just-in-time for the GPU."
+        },
+        {
+            "question": "A key advantage of Triton over raw CUDA is",
+            "options": [
+                "Transparent distributed training",
+                "Built-in model compression",
+                "Complex API calls",
+                "Higher-level abstractions while staying fast"
+            ],
+            "answer": 3,
+            "hint": "It aims to be easier than CUDA while performing well.",
+            "elaboration": "Triton simplifies GPU programming by providing abstractions that compile to high-performance kernels."
+        },
+        {
+            "question": "Triton kernels compile down to",
+            "options": [
+                "PTX",
+                "OpenCL",
+                "WebGPU",
+                "TensorFlow graphs"
+            ],
+            "answer": 0,
+            "hint": "They ultimately run through NVIDIA's toolchain.",
+            "elaboration": "Triton emits PTX code which is assembled for execution on NVIDIA GPUs."
+        },
+        {
+            "question": "What does the @triton.jit decorator do?",
+            "options": [
+                "Enable CPU multithreading",
+                "Compile a function into a GPU kernel",
+                "Serialize tensors to disk",
+                "Launch a Docker container"
+            ],
+            "answer": 1,
+            "hint": "It's how you turn a Python function into a kernel.",
+            "elaboration": "Decorating a function with @triton.jit compiles it just-in-time into a GPU kernel callable from Python."
+        },
+        {
+            "question": "Which feature helps Triton achieve high performance?",
+            "options": [
+                "Explicit control over memory layouts",
+                "Automatic gradient clipping",
+                "Disk I/O caching",
+                "Quantum acceleration"
+            ],
+            "answer": 0,
+            "hint": "Developers manage how data is laid out in memory.",
+            "elaboration": "Triton lets you specify memory layouts directly, enabling kernels that fully utilize bandwidth."
+        },
+        {
+            "question": "Triton is often used to implement",
+            "options": [
+                "Web server routing",
+                "Audio playback loops",
+                "Custom GPU ops like fused softmax",
+                "Mobile apps"
+            ],
+            "answer": 2,
+            "hint": "Think of specialized deep learning primitives.",
+            "elaboration": "Developers use Triton to write custom GPU operations such as fused attention or softmax kernels."
+        },
+        {
+            "question": "Kernel parameters in Triton can be marked as",
+            "options": [
+                "Python type hints",
+                "Gradient tensors",
+                "Compile-time constants",
+                "CSV fields"
+            ],
+            "answer": 2,
+            "hint": "They are known during compilation for optimization.",
+            "elaboration": "Parameters annotated as tl.constexpr become compile-time constants, enabling better code generation."
+        },
+        {
+            "question": "To launch a Triton kernel you typically call",
+            "options": [
+                "triton.run_kernel()",
+                "python3 kernel.py",
+                "cudaLaunchKernel",
+                "kernel[grid](args)"
+            ],
+            "answer": 3,
+            "hint": "The call syntax uses square brackets with a grid spec.",
+            "elaboration": "Triton kernels are invoked with the grid configuration in brackets followed by the argument list."
+        }
+    ],
+    "cuda": [
+        {
+            "question": "Which language is primarily used to program CUDA kernels?",
+            "options": [
+                "Python",
+                "C/C++ with CUDA extensions",
+                "JavaScript",
+                "Fortran"
+            ],
+            "answer": 1,
+            "hint": "Most official examples use this compiled language.",
+            "elaboration": "CUDA mainly extends C/C++ with keywords that define GPU kernels and manage memory."
+        },
+        {
+            "question": "The CUDA programming model organizes threads into",
+            "options": [
+                "Blocks and grids",
+                "Processes and fibers",
+                "Segments and banks",
+                "Frames and pages"
+            ],
+            "answer": 0,
+            "hint": "Each kernel launch specifies these dimensions.",
+            "elaboration": "Threads are grouped into blocks which form a grid, mapping computation onto the GPU hardware."
+        },
+        {
+            "question": "A warp in CUDA refers to",
+            "options": [
+                "A GPU memory region",
+                "An atomic operation",
+                "32 threads executed in lockstep",
+                "A scheduling algorithm"
+            ],
+            "answer": 2,
+            "hint": "It's the unit of SIMT execution.",
+            "elaboration": "A warp is typically 32 threads that the scheduler issues together on an SM."
+        },
+        {
+            "question": "Shared memory in CUDA has latency closest to",
+            "options": [
+                "Global memory",
+                "Registers",
+                "Host DRAM",
+                "Flash storage"
+            ],
+            "answer": 1,
+            "hint": "It's much faster than global memory.",
+            "elaboration": "Shared memory resides on-chip with latency only a few cycles, similar to registers."
+        },
+        {
+            "question": "Which syntax launches a kernel with grid and block dimensions?",
+            "options": [
+                "my_kernel<<<grid, block>>>(args)",
+                "cudaMalloc(args)",
+                "gcc -o kernel",
+                "cuda_sync()"
+            ],
+            "answer": 0,
+            "hint": "It's specific to CUDA's execution configuration syntax.",
+            "elaboration": "A CUDA kernel launch uses the triple-angle-bracket syntax to specify grid and block sizes."
+        },
+        {
+            "question": "CUDA streams allow",
+            "options": [
+                "Implicit memory allocation",
+                "Faster internet downloads",
+                "Automatic warp scheduling",
+                "Concurrent kernel execution"
+            ],
+            "answer": 3,
+            "hint": "They let you overlap kernels and copies.",
+            "elaboration": "Streams provide independent command queues so kernels and memory copies can run concurrently." 
+        },
+        {
+            "question": "The CUDA runtime API primarily handles",
+            "options": [
+                "Debug logging",
+                "Machine translation",
+                "Kernel launches and memory management",
+                "Database queries"
+            ],
+            "answer": 2,
+            "hint": "It wraps lower level driver calls.",
+            "elaboration": "The runtime API simplifies launching kernels and managing GPU memory compared to the driver interface."
+        },
+        {
+            "question": "Unified memory in CUDA enables",
+            "options": [
+                "Automatic kernel fusion",
+                "Faster random number generation",
+                "Global synchronization across GPUs",
+                "A shared address space between CPU and GPU"
+            ],
+            "answer": 3,
+            "hint": "CPU and GPU can access the same virtual address space.",
+            "elaboration": "Unified memory provides a single address space so data can migrate between host and device transparently."
+        },
+        {
+            "question": "nvcc is the",
+            "options": [
+                "GPU debugger",
+                "Device profiler",
+                "CUDA compiler driver",
+                "Hardware emulator"
+            ],
+            "answer": 2,
+            "hint": "It invokes host and device compilers.",
+            "elaboration": "nvcc compiles CUDA C/C++ sources by coordinating the host compiler and PTX generation." 
+        },
+        {
+            "question": "cuBLAS is an example of",
+            "options": [
+                "A game engine",
+                "A GPU-accelerated BLAS library",
+                "A web server",
+                "A compression tool"
+            ],
+            "answer": 1,
+            "hint": "It provides fast matrix multiplication.",
+            "elaboration": "cuBLAS is NVIDIA's implementation of the Basic Linear Algebra Subprograms optimized for GPUs." 
+        }
+    ],
+    "faster attention": [
+        {
+            "question": "FlashAttention improves efficiency by",
+            "options": [
+                "Computing attention in tiled blocks to reduce memory reads",
+                "Pruning all heads",
+                "Switching to CPU",
+                "Using half-precision only"
+            ],
+            "answer": 0,
+            "hint": "Tiles keep data in GPU registers.",
+            "elaboration": "FlashAttention breaks the computation into blocks so key/value data stays in fast memory, cutting bandwidth."
+        },
+        {
+            "question": "Which library implements optimized attention kernels for PyTorch?",
+            "options": [
+                "NumPy",
+                "cuDNN",
+                "xFormers",
+                "libjpeg"
+            ],
+            "answer": 2,
+            "hint": "It's a Facebook-backed project of fast operators.",
+            "elaboration": "xFormers includes a collection of highly optimized attention kernels used to speed up transformers." 
+        },
+        {
+            "question": "PagedAttention in vLLM allows",
+            "options": [
+                "Long sequences from many users with minimal memory fragmentation",
+                "Automatic dataset shuffling",
+                "Model quantization",
+                "Grammar corrections"
+            ],
+            "answer": 0,
+            "hint": "It manages key/value memory like virtual memory.",
+            "elaboration": "PagedAttention allocates key/value buffers in pages so multiple long prompts can coexist efficiently." 
+        },
+        {
+            "question": "One way to approximate attention more cheaply is",
+            "options": [
+                "Random feature methods",
+                "Increasing hidden size",
+                "Zeroing gradients",
+                "Freezing embeddings"
+            ],
+            "answer": 0,
+            "hint": "Kernel methods can approximate softmax.",
+            "elaboration": "Random feature approaches approximate the softmax kernel, reducing the quadratic cost of full attention."
+        },
+        {
+            "question": "Grouped-query attention primarily reduces",
+            "options": [
+                "Embedding lookups",
+                "Separate key/value projections per head",
+                "Layer normalization steps",
+                "Token embeddings"
+            ],
+            "answer": 1,
+            "hint": "Queries share key/value pairs.",
+            "elaboration": "By sharing key/value projections among groups of heads, grouped-query attention lowers memory and compute."
+        },
+        {
+            "question": "FlashAttention 2 achieves speedups partly through",
+            "options": [
+                "Switching from GPUs to CPUs",
+                "Asynchronous Python loops",
+                "Adding dropout",
+                "Register-level tiling"
+            ],
+            "answer": 3,
+            "hint": "It further reduces off-chip memory traffic.",
+            "elaboration": "Register-level tiling keeps more data in registers, enabling even faster attention kernels." 
+        },
+        {
+            "question": "BigBird and Longformer speed up attention using",
+            "options": [
+                "Full dense matrices",
+                "Only feed-forward layers",
+                "Random and local sparse patterns",
+                "RNN replacements"
+            ],
+            "answer": 2,
+            "hint": "They combine global and windowed connections.",
+            "elaboration": "These models use sparse patterns that connect tokens locally and randomly, lowering complexity." 
+        },
+        {
+            "question": "FlashAttention avoids which costly operation?",
+            "options": [
+                "Recomputing softmax denominators",
+                "Reading and writing to slower global memory",
+                "Using GPUs",
+                "Quantizing weights"
+            ],
+            "answer": 1,
+            "hint": "The kernels minimize trips to DRAM.",
+            "elaboration": "By keeping intermediate results in on-chip memory, FlashAttention reduces global memory accesses." 
+        },
+        {
+            "question": "Which hardware feature can accelerate attention?",
+            "options": [
+                "FP16 matrix multiply units",
+                "High-bandwidth memory",
+                "L2 caching",
+                "TensorFloat-32 acceleration"
+            ],
+            "answer": 3,
+            "hint": "Recent NVIDIA GPUs add this mode for Tensor Cores.",
+            "elaboration": "TensorFloat-32 uses tensor cores to multiply matrices quickly while maintaining reasonable precision." 
+        },
+        {
+            "question": "Efficient attention libraries often fuse",
+            "options": [
+                "Dropout and weight decay",
+                "Softmax and matrix multiplication",
+                "Gradient clipping and Adam",
+                "Embedding lookup and tokenization"
+            ],
+            "answer": 1,
+            "hint": "Fusing operations reduces memory traffic.",
+            "elaboration": "Combining the softmax with the preceding matrix multiplication saves memory bandwidth and improves speed." 
+        }
+    ]
+}
