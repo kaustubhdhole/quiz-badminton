@@ -24,6 +24,12 @@ const skateboardSizeMap = {
 };
 
 const sizeSelect = document.getElementById('size-select');
+const greenCountInput = document.getElementById('green-count');
+const gravityInput = document.getElementById('gravity-select');
+
+let gravity = parseFloat(gravityInput.value);
+let quizBrickCount = parseInt(greenCountInput.value, 10);
+
 sizeSelect.addEventListener('change', (e) => {
   skateboardWidth = skateboardSizeMap[e.target.value];
   if (skateboardX > canvas.width - skateboardWidth) {
@@ -32,11 +38,24 @@ sizeSelect.addEventListener('change', (e) => {
   sizeSelect.blur();
 });
 
+greenCountInput.addEventListener('change', (e) => {
+  quizBrickCount = parseInt(e.target.value, 10);
+  initializeBricks();
+  greenCountInput.blur();
+});
+
+gravityInput.addEventListener('change', (e) => {
+  gravity = parseFloat(e.target.value);
+  dx = Math.sign(dx) * gravity;
+  dy = Math.sign(dy) * gravity;
+  gravityInput.blur();
+});
+
 const footballRadius = 10;
 let x = canvas.width / 2;
 let y = canvas.height - 30;
-let dx = 2;
-let dy = -2;
+let dx = gravity;
+let dy = -gravity;
 
 let rightPressed = false;
 let leftPressed = false;
@@ -54,7 +73,7 @@ window.addEventListener('resize', () => {
 });
 
 const brickRowCount = 5;
-const brickColumnCount = 7;
+const brickColumnCount = 14;
 let brickWidth = 55;
 const brickHeight = 20;
 const brickPadding = 10;
@@ -69,26 +88,30 @@ function updateBrickLayout() {
 updateBrickLayout();
 
 let bricks = [];
-for (let c = 0; c < brickColumnCount; c++) {
-  bricks[c] = [];
-  for (let r = 0; r < brickRowCount; r++) {
-    bricks[c][r] = { x: 0, y: 0, status: 1, quiz: false };
+let remainingBricks = 0;
+
+function initializeBricks() {
+  bricks = [];
+  for (let c = 0; c < brickColumnCount; c++) {
+    bricks[c] = [];
+    for (let r = 0; r < brickRowCount; r++) {
+      bricks[c][r] = { x: 0, y: 0, status: 1, quiz: false };
+    }
   }
+  let quizBricks = Math.min(quizBrickCount, brickRowCount * brickColumnCount);
+  while (quizBricks > 0) {
+    const c = Math.floor(Math.random() * brickColumnCount);
+    const r = Math.floor(Math.random() * brickRowCount);
+    const b = bricks[c][r];
+    if (!b.quiz) {
+      b.quiz = true;
+      quizBricks--;
+    }
+  }
+  remainingBricks = brickRowCount * brickColumnCount;
 }
 
-// designate random green bricks that trigger quiz questions
-let quizBricks = 3;
-while (quizBricks > 0) {
-  const c = Math.floor(Math.random() * brickColumnCount);
-  const r = Math.floor(Math.random() * brickRowCount);
-  const b = bricks[c][r];
-  if (!b.quiz) {
-    b.quiz = true;
-    quizBricks--;
-  }
-}
-
-let remainingBricks = brickRowCount * brickColumnCount;
+initializeBricks();
 
 const questionMap = {
   ml: [
