@@ -1,0 +1,58 @@
+body {
+  background: #f0f0f0;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+#gameCanvas {
+  background: #eee;
+  display: block;
+  margin: 0 auto;
+  border: 1px solid #333;
+}
+
+#score {
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+#points-container {
+  position: relative;
+}
+
+.points {
+  position: absolute;
+  font-size: 14px;
+  animation: rise 1s ease-out forwards;
+  color: #e74c3c;
+}
+
+.points.special {
+  color: #27ae60;
+}
+
+@keyframes rise {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+#message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border: 2px solid #333;
+  font-size: 24px;
+}
+
+.hidden {
+  display: none;
+}
