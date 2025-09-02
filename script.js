@@ -92,6 +92,53 @@ function askQuestion() {
   return parseInt(response, 10) === q.answer;
 }
 
+function showFireworks() {
+  const canvas = document.getElementById('fireworksCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.classList.remove('hidden');
+
+  const particles = [];
+  for (let i = 0; i < 5; i++) {
+    const fx = {
+      x: Math.random() * canvas.width,
+      y: Math.random() * (canvas.height / 2)
+    };
+    for (let j = 0; j < 50; j++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 3 + 2;
+      particles.push({
+        x: fx.x,
+        y: fx.y,
+        dx: Math.cos(angle) * speed,
+        dy: Math.sin(angle) * speed,
+        life: 60,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`
+      });
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.dx;
+      p.y += p.dy;
+      p.dy += 0.02;
+      p.life--;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, 3, 3);
+    });
+    if (particles.some(p => p.life > 0)) {
+      requestAnimationFrame(animate);
+    } else {
+      canvas.classList.add('hidden');
+    }
+  }
+  animate();
+}
+
 function keyDownHandler(e) {
   if (e.key === 'Right' || e.key === 'ArrowRight') {
     rightPressed = true;
@@ -169,6 +216,7 @@ function collisionDetection() {
             if (askQuestion()) {
               score += 50;
               showPoints('+50', brickX + brickWidth / 2, brickY);
+              showFireworks();
             }
           } else {
             score += 10;
@@ -177,7 +225,7 @@ function collisionDetection() {
           remainingBricks--;
           scoreDiv.textContent = `Score: ${score}`;
           if (remainingBricks === 0) {
-            endGame();
+            endGame(true);
           }
         }
       }
@@ -197,10 +245,13 @@ function showPoints(text, x, y) {
   span.addEventListener('animationend', () => span.remove());
 }
 
-function endGame() {
+function endGame(won = false) {
   const message = document.getElementById('message');
-  message.textContent = `Game Over! Final Score: ${score}`;
+  message.textContent = won ? `You Win! Final Score: ${score}` : `Game Over! Final Score: ${score}`;
   message.classList.remove('hidden');
+  if (won) {
+    showFireworks();
+  }
   cancelAnimationFrame(animationId);
 }
 
