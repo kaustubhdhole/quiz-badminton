@@ -135,7 +135,7 @@ initializeBricks();
 let buildings = [];
 
 function initializeBuildings() {
-  const colors = ['#e74c3c', '#9b59b6', '#f1c40f', '#2ecc71', '#3498db'];
+  const colors = ['#2c3e50', '#34495e', '#3d566e', '#4b6584', '#2f3640'];
   const positions = [0.05, 0.25, 0.55, 0.75];
   const bWidth = canvas.width * 0.1;
   buildings = positions.map((p, i) => {
@@ -342,11 +342,23 @@ function drawBricks() {
 
 function drawBuildings() {
   buildings.forEach(b => {
+    // building body
     ctx.beginPath();
     ctx.rect(b.x, b.y, b.width, b.height);
     ctx.fillStyle = b.color;
     ctx.fill();
     ctx.closePath();
+
+    // windows
+    const windowWidth = 8;
+    const windowHeight = 10;
+    const windowPadding = 4;
+    ctx.fillStyle = '#ecf0f1';
+    for (let wy = b.y + windowPadding; wy < b.y + b.height - windowHeight; wy += windowHeight + windowPadding) {
+      for (let wx = b.x + windowPadding; wx < b.x + b.width - windowWidth; wx += windowWidth + windowPadding) {
+        ctx.fillRect(wx, wy, windowWidth, windowHeight);
+      }
+    }
   });
 }
 
