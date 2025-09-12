@@ -29,9 +29,11 @@ const skateboardSizeMap = {
 const sizeSelect = document.getElementById('size-select');
 const greenCountInput = document.getElementById('green-count');
 const gravityInput = document.getElementById('gravity-select');
+const citySelect = document.getElementById('city-select');
 
 let gravity = parseFloat(gravityInput.value);
 let quizBrickCount = parseInt(greenCountInput.value, 10);
+let city = citySelect.value;
 
 sizeSelect.addEventListener('change', (e) => {
   skateboardWidth = skateboardSizeMap[e.target.value];
@@ -52,6 +54,12 @@ gravityInput.addEventListener('change', (e) => {
   dx = Math.sign(dx) * gravity;
   dy = Math.sign(dy) * gravity;
   gravityInput.blur();
+});
+
+citySelect.addEventListener('change', (e) => {
+  city = e.target.value;
+  initializeCity();
+  citySelect.blur();
 });
 
 const defaultBallRadius = 10;
@@ -80,6 +88,7 @@ window.addEventListener('resize', () => {
     skateboardX = canvas.width - skateboardWidth;
   }
   updateBrickLayout();
+  if (city === 'nyc') initializeBuildings();
 });
 
 const brickRowCount = 5;
@@ -122,6 +131,40 @@ function initializeBricks() {
 }
 
 initializeBricks();
+
+let buildings = [];
+
+function initializeBuildings() {
+  const colors = ['#e74c3c', '#9b59b6', '#f1c40f', '#2ecc71', '#3498db'];
+  const positions = [0.05, 0.25, 0.55, 0.75];
+  const bWidth = canvas.width * 0.1;
+  buildings = positions.map((p, i) => {
+    const height = canvas.height * (0.2 + Math.random() * 0.3);
+    const xPos = canvas.width * p;
+    return {
+      x: xPos,
+      width: bWidth,
+      height,
+      color: colors[i % colors.length],
+      y: canvas.height - height
+    };
+  });
+  if (buildings[1] && buildings[2]) {
+    const gapStart = buildings[1].x + buildings[1].width;
+    const gapEnd = buildings[2].x;
+    skateboardX = gapStart + (gapEnd - gapStart - skateboardWidth) / 2;
+  }
+}
+
+function initializeCity() {
+  if (city === 'nyc') {
+    initializeBuildings();
+  } else {
+    buildings = [];
+  }
+}
+
+initializeCity();
 
 let questionMap = {};
 
@@ -297,6 +340,40 @@ function drawBricks() {
   }
 }
 
+function drawBuildings() {
+  buildings.forEach(b => {
+    ctx.beginPath();
+    ctx.rect(b.x, b.y, b.width, b.height);
+    ctx.fillStyle = b.color;
+    ctx.fill();
+    ctx.closePath();
+  });
+}
+
+function buildingCollisionDetection() {
+  buildings.forEach(b => {
+    const left = b.x;
+    const right = b.x + b.width;
+    const top = b.y;
+    if (x + ballRadius > left && x - ballRadius < right && y + ballRadius > top) {
+      const overlapLeft = x + ballRadius - left;
+      const overlapRight = right - (x - ballRadius);
+      const overlapTop = y + ballRadius - top;
+      const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop);
+      if (minOverlap === overlapTop) {
+        dy = -Math.abs(dy);
+        y = top - ballRadius;
+      } else if (overlapLeft < overlapRight) {
+        dx = -Math.abs(dx);
+        x = left - ballRadius;
+      } else {
+        dx = Math.abs(dx);
+        x = right + ballRadius;
+      }
+    }
+  });
+}
+
 function collisionDetection() {
   for (let c = 0; c < brickColumnCount; c++) {
     for (let r = 0; r < brickRowCount; r++) {
@@ -351,9 +428,11 @@ function endGame() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBricks();
+  drawBuildings();
   drawFootball();
   drawSkateboard();
   collisionDetection();
+  if (buildings.length) buildingCollisionDetection();
 
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
