@@ -133,6 +133,9 @@ function initializeBricks() {
 initializeBricks();
 
 let buildings = [];
+const windowWidth = 8;
+const windowHeight = 10;
+const windowPadding = 4;
 
 function initializeBuildings() {
   const colors = ['#2c3e50', '#34495e', '#3d566e', '#4b6584', '#2f3640'];
@@ -141,12 +144,28 @@ function initializeBuildings() {
   buildings = positions.map((p, i) => {
     const height = canvas.height * (0.2 + Math.random() * 0.3);
     const xPos = canvas.width * p;
+    const yPos = canvas.height - height;
+    const windows = [];
+    for (
+      let wy = yPos + windowPadding;
+      wy < yPos + height - windowHeight;
+      wy += windowHeight + windowPadding
+    ) {
+      for (
+        let wx = xPos + windowPadding;
+        wx < xPos + bWidth - windowWidth;
+        wx += windowWidth + windowPadding
+      ) {
+        windows.push({ x: wx, y: wy, on: Math.random() < 0.5 });
+      }
+    }
     return {
       x: xPos,
       width: bWidth,
       height,
       color: colors[i % colors.length],
-      y: canvas.height - height
+      y: yPos,
+      windows
     };
   });
   if (buildings[1] && buildings[2]) {
@@ -350,15 +369,29 @@ function drawBuildings() {
     ctx.closePath();
 
     // windows
-    const windowWidth = 8;
-    const windowHeight = 10;
-    const windowPadding = 4;
-    ctx.fillStyle = '#ecf0f1';
-    for (let wy = b.y + windowPadding; wy < b.y + b.height - windowHeight; wy += windowHeight + windowPadding) {
-      for (let wx = b.x + windowPadding; wx < b.x + b.width - windowWidth; wx += windowWidth + windowPadding) {
-        ctx.fillRect(wx, wy, windowWidth, windowHeight);
-      }
+    b.windows.forEach(w => {
+      ctx.fillStyle = w.on ? '#f1c40f' : '#000000';
+      ctx.fillRect(w.x, w.y, windowWidth, windowHeight);
+    });
+  });
+}
+
+function flickerLights(building) {
+  const lights = building.windows.filter(() => Math.random() < 0.3);
+  lights.forEach(w => {
+    if (w.flickerInterval) {
+      clearInterval(w.flickerInterval);
+      clearTimeout(w.flickerTimeout);
     }
+    const original = w.on;
+    w.flickerInterval = setInterval(() => {
+      w.on = !w.on;
+    }, 100);
+    w.flickerTimeout = setTimeout(() => {
+      clearInterval(w.flickerInterval);
+      w.on = original;
+      w.flickerInterval = null;
+    }, 1000 + Math.random() * 1000);
   });
 }
 
@@ -368,6 +401,7 @@ function buildingCollisionDetection() {
     const right = b.x + b.width;
     const top = b.y;
     if (x + ballRadius > left && x - ballRadius < right && y + ballRadius > top) {
+      flickerLights(b);
       const overlapLeft = x + ballRadius - left;
       const overlapRight = right - (x - ballRadius);
       const overlapTop = y + ballRadius - top;
