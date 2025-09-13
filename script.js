@@ -30,10 +30,12 @@ const sizeSelect = document.getElementById('size-select');
 const greenCountInput = document.getElementById('green-count');
 const gravityInput = document.getElementById('gravity-select');
 const citySelect = document.getElementById('city-select');
+const birdSelect = document.getElementById('bird-select');
 
 let gravity = parseFloat(gravityInput.value);
 let quizBrickCount = parseInt(greenCountInput.value, 10);
 let city = citySelect.value;
+let birdCount = parseInt(birdSelect.value, 10);
 
 sizeSelect.addEventListener('change', (e) => {
   skateboardWidth = skateboardSizeMap[e.target.value];
@@ -60,6 +62,12 @@ citySelect.addEventListener('change', (e) => {
   city = e.target.value;
   initializeCity();
   citySelect.blur();
+});
+
+birdSelect.addEventListener('change', (e) => {
+  birdCount = parseInt(e.target.value, 10);
+  initializeBirds();
+  birdSelect.blur();
 });
 
 const defaultBallRadius = 10;
@@ -89,6 +97,7 @@ window.addEventListener('resize', () => {
   }
   updateBrickLayout();
   if (city === 'nyc') initializeBuildings();
+  initializeBirds();
 });
 
 const brickRowCount = 5;
@@ -184,6 +193,61 @@ function initializeCity() {
 }
 
 initializeCity();
+
+let birds = [];
+
+function createBird() {
+  return {
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height * 0.3 + 50,
+    dx: (Math.random() * 2 - 1) * 2,
+    dy: (Math.random() * 2 - 1),
+    radius: 5
+  };
+}
+
+function initializeBirds() {
+  birds = [];
+  for (let i = 0; i < birdCount; i++) {
+    birds.push(createBird());
+  }
+}
+
+function updateBirds() {
+  birds.forEach(b => {
+    b.x += b.dx;
+    b.y += b.dy;
+    if (b.x < 0 || b.x > canvas.width) b.dx = -b.dx;
+    if (b.y < 0 || b.y > canvas.height / 2) b.dy = -b.dy;
+    if (Math.random() < 0.01) {
+      b.dx = (Math.random() * 2 - 1) * 2;
+      b.dy = (Math.random() * 2 - 1);
+    }
+  });
+}
+
+function drawBirds() {
+  birds.forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.closePath();
+  });
+}
+
+function birdCollisionDetection() {
+  birds.forEach(b => {
+    const dist = Math.hypot(x - b.x, y - b.y);
+    if (dist < ballRadius + b.radius) {
+      dy = Math.abs(gravity);
+      dx = (Math.random() * 2 - 1) * gravity;
+      Object.assign(b, createBird());
+    }
+  });
+}
+
+initializeBirds();
 
 let questionMap = {};
 
@@ -473,12 +537,15 @@ function endGame() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  updateBirds();
   drawBricks();
   drawBuildings();
+  drawBirds();
   drawFootball();
   drawSkateboard();
   collisionDetection();
   if (buildings.length) buildingCollisionDetection();
+  birdCollisionDetection();
 
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
